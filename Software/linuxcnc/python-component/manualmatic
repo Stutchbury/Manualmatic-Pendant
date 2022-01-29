@@ -1,0 +1,40 @@
+#!/usr/bin/python
+##
+# Manualmatic Pendant component for LinuxCNC.
+#
+# Sets up hal, linuxcnc, creates the Manualmatic helper class instance
+# then connects to the Manulamatic Pendant over the USB PORT and starts 
+# the poll()ing of the linuscnc user space interface.
+#
+# GPLv2 Licence https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+# 
+# Copyright (c) 2022 Philip Fletcher <philip.fletcher@stutchbury.com>
+# 
+##
+
+import sys
+import hal
+import linuxcnc
+
+from Manualmatic import Manualmatic
+
+PORT='/dev/ttyACM0'
+
+c = hal.component("manualmatic")
+
+mm = Manualmatic(linuxcnc)
+
+try:
+  mm.connect(PORT)
+  #mm.init(0.04) #run as a thread  
+  c.ready()
+  mm.start(0.04) #-OR- as no thread
+
+except(KeyboardInterrupt):
+  mm.stop()
+  sys.exit(1)
+
+except(Exception):
+  raise
+  sys.exit(1)
+
