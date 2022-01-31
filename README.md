@@ -4,7 +4,7 @@
 My Christmas project for 2021 - the aim being to be able to perform the majority of routine LinuxCNC setup, manual and automatic functions without having to step away to a PC monitor.
 
 Proof of concept:
-![pendant proof of concept](images/manualmatic-pendant_2021-12-30.jpeg)
+![pendant proof of concept](images/manualmatic-2022-01-31.jpeg)
 
 Kicked off [here](https://forum.linuxcnc.org/18-computer/44682-arduino-teensy-python-interface-manualmatic-mpg-pendant) on the LinuxCNC forum.
 
