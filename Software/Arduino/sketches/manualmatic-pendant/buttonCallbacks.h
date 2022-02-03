@@ -332,7 +332,7 @@ void onButtonRowClicked(ButtonType_e buttonType) {
  * All the physical buttons on the button row call this 
  * click handler.
  */
-void onButtonRowClicked(EncoderButton& btn) {
+void onButtonRowButtonClicked(EncoderButton& btn) {
   onButtonRowClicked( static_cast<ButtonType_e>(btn.userId()) );
 }
 

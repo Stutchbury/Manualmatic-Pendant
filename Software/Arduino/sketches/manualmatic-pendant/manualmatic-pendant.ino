@@ -172,7 +172,7 @@ void setup() {
     buttonRow[b].setUserId(BUTTON_NONE);
     buttonRow[b].setLongClickDuration(longClickDuration);
     //Set all buttons in button row to same handler
-    buttonRow[b].setClickHandler(onButtonRowClicked);
+    buttonRow[b].setClickHandler(onButtonRowButtonClicked);
     buttonRow[b].setDoubleClickHandler(onButtonRowDoubleClicked);
   }
    
