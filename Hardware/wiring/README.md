@@ -8,6 +8,8 @@ Where possible I have grouped pins together, so if you have access to a Molex cr
 
 The 'bridge' for the configurable button row holds the Teeensy in place at the centre but probably better to push all the Molexes onto the Teensy pins before attaching the display.
 
-In the [test_pendant_wiring](test_pendant_wiring) folder is an Arduino sketch that will enable you to check everything is wired as expected (Ooops! There's software in the Hardware folder... :-).
+The wiring check has now moved to 'Software': [test_pendant_wiring](https://github.com/Stutchbury/Manualmatic-Pendant/tree/main/Software/PlatformIO/pendant/ManualmaticWiringCheck)  
+
+This is a PlatformIO 'sketch' that will enable you to check everything is wired as expected.
 
 The schematic is [here](manulmatic-schematic.pdf).
