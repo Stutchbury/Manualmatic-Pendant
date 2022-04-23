@@ -33,7 +33,7 @@ unsigned long lastTsUpdate = millis();
 EncoderButton feed(ENCODER_A_FEED, ENCODER_B_FEED, BUTTON_FEED);
 EncoderButton mpg(ENCODER_A_MPG, ENCODER_B_MPG);
 EncoderButton spindle(ENCODER_A_SPINDLE, ENCODER_B_SPINDLE, BUTTON_SPINDLE);
-//Buttons
+// //Buttons
 EventButton buttonOnOff(BUTTON_ON_OFF);
 EventButton buttonX(BUTTON_X);
 EventButton buttonY(BUTTON_Y);
@@ -76,7 +76,8 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
   delay(200);
-  gfx.begin();
+  Serial.println("Hello World");
+ gfx.begin();
   gfx.setRotation(1);
   gfx.fillScreen(0);
   mpg.setEncoderHandler(onMpgEncoder);
@@ -133,11 +134,11 @@ void loop() {
   if ( millis() > lastTsUpdate + 100 ) {
     lastTsUpdate = millis();
 
-    // a point object holds x y and z coordinates
+  //   // a point object holds x y and z coordinates
     TSPoint p = ts.getPoint();
     
-    // we have some minimum pressure we consider 'valid'
-    // pressure of 0 means no pressing!
+  //   // we have some minimum pressure we consider 'valid'
+  //   // pressure of 0 means no pressing!
     if (p.z > ts.pressureThreshhold) {
       clr();
       gfx.printf("Touch X: %i, Y: %i \n", p.x, p.y);
