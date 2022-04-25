@@ -38,6 +38,8 @@ class Manualmatic:
   CMD_RAPID_OVERRIDE = 'r' #Rapid override IN/OUT
   CMD_JOG = 'J' #Jog
   CMD_JOG_VELOCITY = 'j' #Jog Velocity IN/OUT (sorta)
+  CMD_JOG_CONTINUOUS = 'N' #Jog continuous (nudge)
+  CMD_JOG_STOP = 'n' #no Jog
   CMD_TASK_MODE = 'M' #mode IN/OUT
   CMD_TASK_STATE = 'E' #task_state (Estop and On/Off) IN/OUT
   CMD_INTERP_STATE = 'I' #interp_state
@@ -491,8 +493,7 @@ class Manualmatic:
   # Called if a valid message is received
   def processCmd(self, cmd, payload):
     #print("processCmd...")
-    #print(cmd)
-    #print(payload)
+    #print(cmd, ':', payload)
 
     # Abort
     if ( cmd[0] == '!'):
@@ -500,12 +501,32 @@ class Manualmatic:
       print("Received abort!");
 
     # Jog
+    elif ( cmd[0] == self.CMD_JOG_STOP and '012345678'.find(cmd[1]) != -1 and int(cmd[1]) < self.ls.axes ):
+      if (self.ls.motion_mode != self.linuxcnc.TRAJ_MODE_TELEOP):
+        self.lc.teleop_enable(True)
+        self.lc.wait_complete()
+      try:
+        self.lc.jog(self.linuxcnc.JOG_STOP, False, int(cmd[1]))
+      except:
+        None
     elif ( cmd[0] == self.CMD_JOG and '012345678'.find(cmd[1]) != -1 and int(cmd[1]) < self.ls.axes ):
       if (self.ls.motion_mode != self.linuxcnc.TRAJ_MODE_TELEOP):
         self.lc.teleop_enable(True)
         self.lc.wait_complete()
       try:
         self.lc.jog(self.linuxcnc.JOG_INCREMENT, False, int(cmd[1]), (self.jog_velocity/60), float(payload))
+      except:
+        None
+
+    elif ( cmd[0] == self.CMD_JOG_CONTINUOUS and '012345678'.find(cmd[1]) != -1 and int(cmd[1]) < self.ls.axes ):
+      if (self.ls.motion_mode != self.linuxcnc.TRAJ_MODE_TELEOP):
+        self.lc.teleop_enable(True)
+        self.lc.wait_complete()
+      try:
+        if ( float(payload) == 0 ):
+          self.lc.jog(self.linuxcnc.JOG_STOP, False, int(cmd[1]))
+        else:
+          self.lc.jog(self.linuxcnc.JOG_CONTINUOUS, False, int(cmd[1]), (float(payload)/60))
       except:
         None
 
