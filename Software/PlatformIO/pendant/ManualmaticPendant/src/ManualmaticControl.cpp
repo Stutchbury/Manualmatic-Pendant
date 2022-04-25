@@ -331,7 +331,7 @@ void ManualmaticControl::toggleSelectedAxis(Axis_e axis) {
     if ( state.currentAxis == axis ) {
       state.currentAxis = AXIS_NONE;
       messenger.jogAxisStop(axis);
-    } else {
+    } else if ( state.displayedAxes > axis  ) {
       state.currentAxis = axis;
     }
   }
