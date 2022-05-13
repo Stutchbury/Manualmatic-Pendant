@@ -4,8 +4,8 @@ These are the components I have chosen to use for the Manualmatic when using the
 
 
 
-| |Ref	| Qty	|  Value	|  Datasheet |  Manufacturer |
-| ---| --- | --- | ----------------------- | ---------- | ----------- | ---- |
+| Item | Ref	| Qty	| Value | Datasheet |  Manufacturer |
+| ---- | ---- | --- | ----- | --------- | ------------- |
 |![MPG](images/teensy4.1.jpg)  | U1 |	1	| Teensy4.1| https://www.pjrc.com/store/teensy41.html | Teensy |
 |![MPG](images/adafruit_2.8-128.jpg) | J1 |	1	| Adafruit-1770-2.8-TFT-Touch	 |	https://www.adafruit.com/product/1770	| Adafruit |
 |![MPG](images/PEC11R-4115F-S0018.png)  | S12 S13 | 2	| PEC11R-4115F-S0018	|	https://www.mouser.co.uk/datasheet/2/54/PEC11R-777457.pdf	| Bourns |
