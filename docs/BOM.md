@@ -4,15 +4,15 @@ These are the components I have chosen to use for the Manualmatic when using the
 
 
 
-| Item | Ref	| Qty	| Value | Datasheet |  Manufacturer |
-| ---- | ---- | --- | ----- | --------- | ------------- |
-|![MPG](../images/teensy4.1.jpg)  | U1 |	1	| Teensy4.1| https://www.pjrc.com/store/teensy41.html | Teensy |
-|![MPG](../images/adafruit_2.8-128.jpg) | J1 |	1	| Adafruit-1770-2.8-TFT-Touch	 |	https://www.adafruit.com/product/1770	| Adafruit |
-|![MPG](../images/PEC11R-4115F-S0018.png)  | S12 S13 | 2	| PEC11R-4115F-S0018	|	https://www.mouser.co.uk/datasheet/2/54/PEC11R-777457.pdf	| Bourns |
-|![MPG](../images/B3F-1025.png) | S1 S2 S3 S4 S5 |	5	| B3F-1025 |	https://www.mouser.co.uk/datasheet/2/307/en-b3f-13826.pdf	| Omron |
-|![MPG](../images/B3F-3105.png) | S6 S7 S8 S9 S10 S11 S14 | 7	| B3F-3105| https://www.mouser.co.uk/datasheet/2/307/en-b3f-13826.pdf |		Omron |
-|![MPG](../images/COM-09032.jpg)  | U2 |	1	|COM-09032	| https://www.sparkfun.com/products/9032	| SparkFun Electronics |
-|![MPG](../images/right-angle-header.png) | J2 | 1 | Right angle male header for MPG| | Generic|
+|Num| Item | Ref	| Qty	| Value | Datasheet |  Manufacturer |
+|--| ---- | ---- | --- | ----- | --------- | ------------- |
+|1|![MPG](../images/teensy4.1.jpg)  | U1 |	1	| Teensy4.1| https://www.pjrc.com/store/teensy41.html | Teensy |
+|2|![MPG](../images/adafruit_2.8-128.jpg) | J1 |	1	| Adafruit-1770-2.8-TFT-Touch	 |	https://www.adafruit.com/product/1770	| Adafruit |
+|3|![MPG](../images/PEC11R-4115F-S0018.png)  | S12 S13 | 2	| PEC11R-4115F-S0018	|	https://www.mouser.co.uk/datasheet/2/54/PEC11R-777457.pdf	| Bourns |
+|4|![MPG](../images/B3F-1025.png) | S1 S2 S3 S4 S5 |	5	| B3F-1025 |	https://www.mouser.co.uk/datasheet/2/307/en-b3f-13826.pdf	| Omron |
+|5|![MPG](../images/B3F-3105.png) | S6 S7 S8 S9 S10 S11 S14 | 7	| B3F-3105| https://www.mouser.co.uk/datasheet/2/307/en-b3f-13826.pdf |		Omron |
+|6|![MPG](../images/COM-09032.jpg)  | U2 |	1	|COM-09032	| https://www.sparkfun.com/products/9032	| SparkFun Electronics |
+|7|![MPG](../images/right-angle-header.png) | J2 | 1 | Right angle male header for MPG| | Generic|
 
 
 Unless you're brave enough to solder both the Teensy and the Adafruit display to the PCB (I'm not and the case *is not* designed for direct soldering), you'll need 48 female headers for the Teensy and 14 female headers for the display.
