@@ -9,3 +9,8 @@ The PCB:
 
 3D Printable Case:
 - [Printing the Case](../Hardware/case/v1.1/README.md)
+
+Software
+- [LinuxCNC Install](LINUXCNC_INSTALL.md)
+
+
