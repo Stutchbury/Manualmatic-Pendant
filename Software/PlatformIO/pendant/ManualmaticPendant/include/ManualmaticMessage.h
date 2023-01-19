@@ -101,7 +101,15 @@ class ManualmaticMessage : public Print {
   private:
 
     Stream& serial;
-    const char STX = '\x02';
+   /**
+    * @brief Defines the start of a ManualmaticMessage
+    * 
+    */
+   const char STX = '\x02';
+   /**
+    * @brief Defines the end of a ManualmaticMessage
+    * 
+    */
     const char ETX = '\x03';
     size_t messageSize = 0;
                       // STX Cmd Payload ETX \0

@@ -359,17 +359,31 @@ bool ManualmaticDisplay::setDisplayedAxisValue(uint8_t axis) {
 }
 
 void ManualmaticDisplay::drawAxisMarkers(bool forceRefresh /*= false*/) {
-  if ( forceRefresh || drawn.currentAxis != state.currentAxis ) {
+  // We only check one of the joystick axes
+  if ( forceRefresh || drawn.currentAxis != state.currentAxis  || drawn.joystickAxis != state.joystickAxis[0] ) {
     gfx.fillRect(areas.axisMarkers.x(), areas.axisMarkers.y(), areas.axisMarkers.w(), areas.axisMarkers.h(), BLACK);
-    if ( state.currentAxis != AXIS_NONE ) {
-      gfx.fillTriangle(
-        0, axisDisplayY[state.currentAxis],
-        15, axisDisplayY[state.currentAxis] + 15,
-        0, axisDisplayY[state.currentAxis] + 30,
-        WHITE
-      );
+
+    for ( uint8_t i=0; i< state.displayedAxes; i++) {
+      Coords_s cp = {0, axisDisplayY[i]};
+      if ( state.currentAxis == i ) {
+        gfx.fillTriangle(
+          0, axisDisplayY[i],
+          15, axisDisplayY[i] + 15,
+          0, axisDisplayY[i] + 30,
+          WHITE
+        );
+      }
+      if ( state.joystickAxis[0] == i ) {
+        icons.drawJoystickMarker(cp);
+      }
+      if ( state.joystickAxis[1] == i ) {
+        icons.drawJoystickMarker(cp);
+      }
+
+
     }
     drawn.currentAxis = state.currentAxis;
+    drawn.joystickAxis = state.joystickAxis[0];
   }
 }
 

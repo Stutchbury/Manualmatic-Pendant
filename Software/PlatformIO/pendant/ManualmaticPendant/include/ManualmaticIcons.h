@@ -60,6 +60,8 @@ class ManualmaticIcons {
     void drawIconPlay(Coords_s cp, uint16_t c=WHITE, uint8_t h=26);
 
     void drawIconStop(Coords_s cp, int c=WHITE, uint8_t h=24);
+
+    void drawJoystickMarker(Coords_s cp);
   /** ***************************************************************
 
   */

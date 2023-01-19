@@ -127,6 +127,9 @@ bool ManualmaticState::setTaskMode(Task_mode_e mode, bool force/*=false*/) {
 
   task_mode = mode;
   currentAxis = AXIS_NONE;
+  joystickAxis[0] = AXIS_NONE;
+  joystickAxis[1] = AXIS_NONE;
+
   switch (task_mode) {    
     case MODE_MANUAL:
       setScreen(SCREEN_MANUAL);

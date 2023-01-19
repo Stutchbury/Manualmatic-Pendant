@@ -212,6 +212,20 @@ void ManualmaticIcons::drawIconStop(Coords_s cp, int c/*=WHITE*/, uint8_t h/*=24
 }
 
 
+void ManualmaticIcons::drawJoystickMarker(Coords_s cp) {
+    gfx.fillTriangle(
+      0, cp.y+5, //axisDisplayY[i],
+      10, cp.y+15, //axisDisplayY[i] + 15,
+      0, cp.y+25, //axisDisplayY[i] + 30,
+      ORANGE
+    );
+    // gfx.drawTriangle(
+    //   0, cp.y+1, //axisDisplayY[i],
+    //   14, cp.y+15, //axisDisplayY[i] + 15,
+    //   0, cp.y+29, //axisDisplayY[i] + 30,
+    //   RED
+    // );
+}
 
 /** ***************************************************************
 

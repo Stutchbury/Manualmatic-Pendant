@@ -41,16 +41,16 @@ class ManualmaticConfig {
 
 
     float jogIncrements[4] = {0.001, 0.01, 0.1, 1}; //Local display only
-    float defaultJogVelocity[2] = {180, 3000}; //mm/min
+    float defaultJogVelocity[2] = {100, 1000}; //mm/min
     float minJogVelocity = 15;
-    float maxJogVelocity = 6000;
+    float maxJogVelocity = 1500;
 
 
     float jogVelocityIncrement[2] = {5,25}; //mm/min
 
     uint16_t joystickStartBoundary = 50;
     uint16_t joystickEndBoundary = 50;
-    uint8_t numJoystickIncrements = 12;
+    uint8_t numJoystickIncrements = 8;
     Axis_e joystickAxisDefault[2] = {AXIS_X, AXIS_Y};
     Axis_e joystickAxisAlt[2] = {AXIS_A, AXIS_Z};
   

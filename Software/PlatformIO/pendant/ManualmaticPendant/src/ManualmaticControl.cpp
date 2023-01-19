@@ -154,6 +154,7 @@ void ManualmaticControl::setupJoystick() {
   //Disable the joystick but allow callibtation (everyone plays with the joystick!)
   joystick.enable(false, true);
   buttonJoystick.setClickHandler([&](EventButton &btn) { onJoystickClicked(btn); });
+  buttonJoystick.setDoubleClickHandler([&](EventButton &btn) { onJoystickDoubleClicked(btn); });
 }
 
 
@@ -352,6 +353,9 @@ void ManualmaticControl::toggleDisplayAAxis(EventButton& btn) {
     //Make the currently drawn axis stale so it gets redrawn
     //state.drawn.currentAxis = AXIS_NONE;
     state.currentAxis = AXIS_NONE;
+    joystick.enable(false);
+    state.joystickAxis[0] = AXIS_NONE;
+    state.joystickAxis[1] = AXIS_NONE;
     //@TODO At some point, prevent A axis being shown if machine only has 3 axis...
     state.displayedAxes = (state.displayedAxes == 3 ? 4 : 3);
   }
@@ -720,48 +724,44 @@ void ManualmaticControl::onSetG5xOffset() {
 
 void ManualmaticControl::onJoystickXChanged(EventAnalog& ea) {
   if ( state.isReady() && state.isManual() ) {
-    if ( state.isScreen(SCREEN_MANUAL) ) {
-      messenger.jogAxisContinuous(state.joystickAxis[AXIS_X], (state.jogVelocity[state.jogVelocityRange]/config.numJoystickIncrements) * ea.position());
+    if ( state.isScreen(SCREEN_MANUAL) && state.joystickAxis[0] != AXIS_NONE ) {
+      messenger.jogAxisContinuous(state.joystickAxis[0], (state.jogVelocity[state.jogVelocityRange]/config.numJoystickIncrements) * ea.position());
     }
-  }
-  //Can do this any time...
-  if ( ea.position() == 0 && !buttonModifier.isPressed() ) {
-    state.joystickAxis[0] = config.joystickAxisDefault[0];    
   }
 }
 
 void ManualmaticControl::onJoystickYChanged(EventAnalog& ea) {
   if ( state.isReady() && state.isManual() ) {
-    if ( state.isScreen(SCREEN_MANUAL) ) {
-      messenger.jogAxisContinuous(state.joystickAxis[AXIS_Y], (state.jogVelocity[state.jogVelocityRange]/config.numJoystickIncrements) * ea.position());
+    if ( state.isScreen(SCREEN_MANUAL) && state.joystickAxis[1] != AXIS_NONE  ) {
+      messenger.jogAxisContinuous(state.joystickAxis[1], (state.jogVelocity[state.jogVelocityRange]/config.numJoystickIncrements) * ea.position());
     }
-  }
-  //Can do this any time...
-  if ( ea.position() == 0 && !buttonModifier.isPressed() ) {
-    state.joystickAxis[1] = config.joystickAxisDefault[1];    
   }
 }
 
 void ManualmaticControl::onJoystickIdle(EventJoystick& ejs) {
-    joystick.enable(false);
+    //joystick.enable(false);
 }
 
 void ManualmaticControl::onJoystickClicked(EventButton& ejs) {
+  if ( !joystick.enabled() || state.joystickAxis[0] == AXIS_NONE ) {
+    joystick.enable(true);
+    state.joystickAxis[0] = config.joystickAxisDefault[0];
+    state.joystickAxis[1] = config.joystickAxisDefault[1];
+  } else {
+    joystick.enable(false);
+    state.joystickAxis[0] = AXIS_NONE;
+    state.joystickAxis[1] = AXIS_NONE;
+  }
+}
+
+void ManualmaticControl::onJoystickDoubleClicked(EventButton& ejs) {
   joystick.enable(true);  
+  state.joystickAxis[0] = config.joystickAxisAlt[0];
+  state.joystickAxis[1] = config.joystickAxisAlt[1];
 }
 
 void ManualmaticControl::onButtonModifierPressed(EventButton& rb) {
-  if ( state.isScreen(SCREEN_MANUAL) && state.isReady() && !state.isAuto() ) {
-    if ( joystick.enabled() && joystick.x.position() == 0 and joystick.y.position() == 0 ) {
-      state.joystickAxis[0] = config.joystickAxisAlt[0];
-      state.joystickAxis[1] = config.joystickAxisAlt[1];
-    }
-  }
 }
 
 void ManualmaticControl::onButtonModifierReleased(EventButton& rb) {
-  if ( joystick.x.position() == 0 and joystick.y.position() == 0 ) {
-    state.joystickAxis[0] = config.joystickAxisDefault[0];
-    state.joystickAxis[1] = config.joystickAxisDefault[1];
-  }
 }

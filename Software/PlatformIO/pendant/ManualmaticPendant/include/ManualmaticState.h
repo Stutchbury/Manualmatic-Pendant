@@ -109,7 +109,7 @@ class ManualmaticState {
     Screen_e screen = SCREEN_INIT;
     Screen_e previousScreen = SCREEN_INIT;
 
-    Axis_e joystickAxis[2] = {AXIS_X, AXIS_Y};
+    Axis_e joystickAxis[2] = {AXIS_NONE, AXIS_NONE};
 
     //The row of buttons
     ButtonRow_e buttonRow = BUTTON_ROW_NONE;

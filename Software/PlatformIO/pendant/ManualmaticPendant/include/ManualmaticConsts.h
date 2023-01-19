@@ -20,7 +20,7 @@
 #include <Arduino.h>
 
 #define MANUALMATIC_VERSION "0.0.2"
-// Color definitions
+// Color definitions @TODO Move to display?
 //https://github.com/adafruit/Adafruit_ILI9341/blob/master/Adafruit_ILI9341.h
 #define BLACK 0x0000       ///<   0,   0,   0
 #define NAVY 0x000F        ///<   0,   0, 123
@@ -184,17 +184,6 @@ enum JogRange_e : uint8_t {
  * 
  */
 const char AXIS_NAME[] = "XYZABCUVW";
-
-/**
- * @brief Defines the start of a ManualmaticMessage
- * 
- */
-const char STX = '\x02';
-/**
- * @brief Defines the end of a ManualmaticMessage
- * 
- */
-const char ETX = '\x03';
 
 enum Screen_e : uint8_t {
   SCREEN_INIT, SCREEN_SPLASH, SCREEN_ESTOP, SCREEN_ESTOP_RESET, SCREEN_MANUAL, SCREEN_MDI, SCREEN_AUTO, SCREEN_OFFSET_KEYPAD

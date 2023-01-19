@@ -74,6 +74,7 @@ class ManualmaticDisplay {
      */
     struct DrawnState_s {
       Axis_e currentAxis = AXIS_NONE;
+      Axis_e joystickAxis = AXIS_NONE;
       uint8_t homed[8] = {0, 0, 0, 0, 0, 0, 0, 0};
       float displayedAxisValues[8] = {0, 0, 0, 0, 0, 0, 0, 0};
       uint8_t displayedAxes = 4;

@@ -117,6 +117,7 @@ class ManualmaticControl {
     void onJoystickYChanged(EventAnalog& ea);
     void onJoystickIdle(EventJoystick& ejs);
     void onJoystickClicked(EventButton& ejs);    
+    void onJoystickDoubleClicked(EventButton& ejs);    
 
 
       
