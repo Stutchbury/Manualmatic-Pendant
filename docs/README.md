@@ -13,4 +13,7 @@ The PCB:
 Software
 - [LinuxCNC Install](LINUXCNC_INSTALL.md)
 
+User Guide
+- [This](pendant_user_guide.pdf) is currently more an early development aid rather than a user guide as it describes the functions of each control on the Manualmatic rather than describing how to perform tasks. Rewrite is required...
+
 
