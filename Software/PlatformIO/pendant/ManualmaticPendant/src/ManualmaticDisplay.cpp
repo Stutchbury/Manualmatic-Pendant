@@ -536,7 +536,7 @@ void ManualmaticDisplay::drawJogVelocity(bool forceRefresh /*= false*/ ) {
     }
     char buffer[7];
     dtostrf(state.jogVelocity[state.jogVelocityRange], -5, 0, buffer);
-    drawEncoderValue(a, 0, buffer);
+    drawEncoderValue(a, 0, buffer, BLACK, (state.jogVelocityRange == JOG_RANGE_HIGH ? LIGHTGREEN : WHITE));
     drawn.jogVelocity[state.jogVelocityRange] = state.jogVelocity[state.jogVelocityRange];
     drawn.jogVelocityRange = state.jogVelocityRange;
   }
@@ -550,9 +550,11 @@ void ManualmaticDisplay::drawModeLabel(bool forceRefresh /*= false*/) {
   //@TODO redraw if number of axes changes
   if ( forceRefresh ) {
     //http://www.barth-dev.de/online/rgb565-color-picker/
+    //https://chrishewett.com/blog/true-rgb565-colour-picker/
     gfx.fillRect(areas.axisMarkers.x(), areas.axisMarkers.y(), areas.axisMarkers.w(), areas.axisMarkers.h(), 0x1082 ); //DARKGREY);
     gfx.setFont(&FreeSansBold9pt7b);
-    gfx.setTextColor(0x39C7);
+    //gfx.setTextColor(0x39C7);
+    gfx.setTextColor(LIGHTGREEN);
     if ( state.isScreen(SCREEN_AUTO) ) {
       gfx.setCursor(0, 35);
       gfx.print("A\nU\nT\nO");

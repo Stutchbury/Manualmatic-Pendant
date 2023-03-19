@@ -17,6 +17,10 @@ ManualmaticMessenger::ManualmaticMessenger(ManualmaticMessage& message, Manualma
       state(s)
   {}
 
+void ManualmaticMessenger::ManualmaticMessenger::sendHeartbeat() {
+  serialMessage.send('b');
+}
+
 /** *************************************************************
  *  machine state
  */

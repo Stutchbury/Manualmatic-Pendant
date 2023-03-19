@@ -94,6 +94,10 @@ class ManualmaticControl {
 
     ButtonRow_e buttonRow = BUTTON_ROW_NONE;
 
+    unsigned long now = millis();
+    unsigned long lastHeartbeat = 0;
+
+
     void setupEncoders();
     void setupButtons();
     void setupButtonRowKeypad();

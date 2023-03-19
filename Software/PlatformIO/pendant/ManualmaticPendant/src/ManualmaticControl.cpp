@@ -68,6 +68,13 @@ void ManualmaticControl::update() {
   joystick.update();
   buttonJoystick.update();
   buttonModifier.update();
+  now = millis();
+  
+  if ( now > lastHeartbeat + heartbeatMs ) {
+    lastHeartbeat = now;
+    messenger.sendHeartbeat();
+  }
+
 }
 /** ********************************************************************** */
 void ManualmaticControl::setupEncoders() {
@@ -363,7 +370,8 @@ void ManualmaticControl::toggleDisplayAAxis(EventButton& btn) {
 /** ********************************************************************** */
 void ManualmaticControl::onButtonModeClicked(EventButton& btn) {
   if ( state.isProgramState(PROGRAM_STATE_STOPPED) || state.isProgramState(PROGRAM_STATE_NONE) ) {
-    uint8_t m = (state.task_mode % 3) + 1; //or (1+x)%3 from 0
+    //uint8_t m = (state.task_mode % 3) + 1; //or (1+x)%3 from 0
+    uint8_t m = (state.task_mode % 2) + 1; //Only Manual and Auto (no MDI)
     messenger.sendTaskMode(m);
   }
 }
@@ -688,9 +696,9 @@ void ManualmaticControl::onButtonStop() {
 void ManualmaticControl::toggleCoolant(bool doubleClick /*=false*/) {
   if ( state.isReady() ) {
     if ( doubleClick ) {
-      messenger.sendMist(state.mist == MIST_OFF ? MIST_ON : MIST_OFF);
-    } else {
       messenger.sendFlood(state.flood == FLOOD_OFF ? FLOOD_ON : FLOOD_OFF);      
+    } else {
+      messenger.sendMist(state.mist == MIST_OFF ? MIST_ON : MIST_OFF);
     }
   }
 }
@@ -721,6 +729,8 @@ void ManualmaticControl::onSetG5xOffset() {
     messenger.sendG5xOffset(state.currentAxis, payload);
   }
 }
+
+
 
 void ManualmaticControl::onJoystickXChanged(EventAnalog& ea) {
   if ( state.isReady() && state.isManual() ) {

@@ -27,6 +27,8 @@ class ManualmaticMessenger {
     ManualmaticMessenger(ManualmaticMessage& message, ManualmaticConfig& config, ManualmaticState& s);
 
 
+    void sendHeartbeat();
+
     /** *************************************************************
      *  machine state
      */
