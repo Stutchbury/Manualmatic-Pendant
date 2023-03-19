@@ -87,7 +87,7 @@ class ManualmaticOffsetKeypad : public DisplayTouchKeypad {
     // An array holing the key labels
     char keyLabels[4][5][5] = {
       { "F1","7", "8", "9", "F3"  },
-      { "F2","4", "5", "6", "F4" },
+      { "F2","4", "5", "6", "1/2" },
       { "Clr","1", "2", "3", "<==" },
       { "Can","+/-", "0", ".", "OK" }
     };

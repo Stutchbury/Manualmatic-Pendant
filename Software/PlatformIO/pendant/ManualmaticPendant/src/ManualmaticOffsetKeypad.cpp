@@ -50,7 +50,12 @@ void ManualmaticOffsetKeypad::enable(bool b /*= true*/) {
 bool ManualmaticOffsetKeypad::onKeyTouched(TouchKey& key) {
   if (!key.fireKeyTouchedCallback()) {
     uint8_t len = strlen(valueBuffer);
-    if (strchr("0123456789.", labels[key.row()][key.col()][0]) != NULL) {
+    if (key.row() == 1 && key.col() == 4) {
+      //Half Offset
+      float half = state.displayedAxisValues[state.currentAxis]/2;
+      sprintf(valueBuffer, "%.3f", half);
+    }
+    else if (strchr("0123456789.", labels[key.row()][key.col()][0]) != NULL) {
       // 0-9 or '.' touched
       char digit = labels[key.row()][key.col()][0];
       if (digit == '.' && strchr(valueBuffer, '.') != NULL) {
@@ -142,3 +147,4 @@ void ManualmaticOffsetKeypad::drawLabel() {
     drawnAxis = state.currentAxis;
   }
 }
+

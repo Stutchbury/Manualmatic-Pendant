@@ -22,6 +22,7 @@
 #define MANUALMATIC_VERSION "0.0.2"
 // Color definitions @TODO Move to display?
 //https://github.com/adafruit/Adafruit_ILI9341/blob/master/Adafruit_ILI9341.h
+//https://chrishewett.com/blog/true-rgb565-colour-picker/
 #define BLACK 0x0000       ///<   0,   0,   0
 #define NAVY 0x000F        ///<   0,   0, 123
 #define DARKGREEN 0x03E0   ///<   0, 125,   0
@@ -41,7 +42,7 @@
 #define ORANGE 0xFD20      ///< 255, 165,   0
 #define GREENYELLOW 0xAFE5 ///< 173, 255,  41
 #define PINK 0xFC18        ///< 255, 130, 198
-
+#define LIGHTGREEN 0x8fee  
 
 
 /**
@@ -206,6 +207,12 @@ enum ButtonType_e : uint8_t {
 enum ButtonState_e : uint8_t {
   BUTTON_STATE_NONE, BUTTON_STATE_ACTIVE, BUTTON_STATE_INACTIVE, BUTTON_STATE_ON /*implied active*/, BUTTON_STATE_OFF /*implied active*/
 };
+
+/**
+ * @brief Duration of a long click in milliseconds
+ * 
+ */
+const unsigned int heartbeatMs = 500;
 
 /**
  * @brief Duration of a long click in milliseconds
