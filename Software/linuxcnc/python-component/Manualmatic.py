@@ -584,7 +584,7 @@ class Manualmatic:
       #@TODO check current task_mode
       #@TODO Check if we need override_enabled for manual control of spindle
       if ( self.ls.spindle[0]["override_enabled"] == 0):
-        self.lc.set_spindle_override(1, 0)
+        self.lc.set_spindle_override(1, 1)
         self.lc.wait_complete()
       rpm = float(payload)
       print("Manualmatic: rpm: ", rpm)
