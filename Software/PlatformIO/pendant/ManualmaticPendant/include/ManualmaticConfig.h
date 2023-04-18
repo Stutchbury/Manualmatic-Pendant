@@ -48,6 +48,8 @@ class ManualmaticConfig {
 
     float jogVelocityIncrement[2] = {5,25}; //mm/min
 
+
+    uint16_t joystickRateLimit = 10;
     uint16_t joystickStartBoundary = 50;
     uint16_t joystickEndBoundary = 50;
     uint8_t numJoystickIncrements = 8;

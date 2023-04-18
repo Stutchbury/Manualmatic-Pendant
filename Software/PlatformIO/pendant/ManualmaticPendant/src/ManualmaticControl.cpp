@@ -150,6 +150,7 @@ void ManualmaticControl::setupOffsetKeypad() {
 }
 
 void ManualmaticControl::setupJoystick() {
+  joystick.setRateLimit(config.joystickRateLimit);
   joystick.x.setStartBoundary(config.joystickStartBoundary);
   joystick.y.setStartBoundary(config.joystickStartBoundary);
   joystick.x.setEndBoundary(config.joystickEndBoundary);
@@ -158,7 +159,7 @@ void ManualmaticControl::setupJoystick() {
   joystick.x.setChangedHandler([&](EventAnalog &js) { onJoystickXChanged(js); });
   joystick.y.setChangedHandler([&](EventAnalog &js) { onJoystickYChanged(js); });
   joystick.setIdleHandler([&](EventJoystick &js) { onJoystickIdle(js); });
-  //Disable the joystick but allow callibtation (everyone plays with the joystick!)
+  //Disable the joystick but allow callibration (everyone plays with the joystick!)
   joystick.enable(false, true);
   buttonJoystick.setClickHandler([&](EventButton &btn) { onJoystickClicked(btn); });
   buttonJoystick.setDoubleClickHandler([&](EventButton &btn) { onJoystickDoubleClicked(btn); });

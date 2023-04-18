@@ -38,6 +38,7 @@ def initPendant():
   mm.writeToSerial('a', '3') #number of axes   
   mm.writeToSerial('a', '3') #number of axes   
   linuxcnc.task_mode = 1
+  linuxcnc.axis_mask = 7
   linuxcnc.homed[0] = 1
   linuxcnc.homed[1] = 1
   linuxcnc.homed[2] = 1
