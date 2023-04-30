@@ -28,7 +28,7 @@ from Manualmatic import Manualmatic
 exitapp = False
 
 from linuxcnc_mock import linuxcnc_mock
-c = {"manualmatic_estop": 0}
+c = {"estop-is-activated": 0}
 linuxcnc = linuxcnc_mock()
 
 mm = Manualmatic(linuxcnc, c)
