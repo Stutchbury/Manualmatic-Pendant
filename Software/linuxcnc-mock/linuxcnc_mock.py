@@ -44,6 +44,10 @@ class command_mock():
       print("turning off")
       self.ls.task_state = self.ls.STATE_OFF
       self.ls.task_state = self.ls.STATE_ESTOP_RESET
+    elif ( taskState == self.ls.STATE_ESTOP ):
+      self.ls.task_state = self.ls.STATE_ESTOP
+    elif ( taskState == self.ls.STATE_ESTOP_RESET ):
+      self.ls.task_state = self.ls.STATE_ESTOP_RESET
 
 
   def spindle(self, dir, rpm, spindle=0):
