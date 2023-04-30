@@ -19,14 +19,19 @@ Ensure all components are fully seated and square to the PCB. The 3D printed cas
 8. **Encoders**: Fit the two encoder buttons (PEC11R-4115F-S0018 in references S12 & S13). They *should* 'click' into place and hold themselves tight to the PCB while being soldered.   ![Encoders](../images/pcb-encoders.jpg)
 9.  **MPG Header**: Solder the right angle male header for the MPG to the back of the board (reference J2). You can optionally solder the MPG wires directly to the PCB -  I'd recommend hot glue strain relief as there's a fair bit of fiddling when putting the case together.      ![MPG Headers](../images/pcb-mpg-header.jpg)
 
+10.  **Soft Estop**: These headers are for a soft estop - the switch must be MC (normally closed) as the estop is actived when the switch is open.
+I highly recommend putting the headers on the top for ease of assembly.
+![MPG Headers](../images/soft-estop-header.jpg)
+If you are using a a hard wired (or no) estop, you can either bridge these headers or change ```useSoftEstop``` to ```false``` in ```ManualmaticConfig.h``` to free up J3 (GND & pin 27/A13) as spare connection.  <br/>
+**NOTE:** Please see main documentation to check if you need to implements the LinuxCNC estop_latch. 
+
 
 ### Optional Connections
 
-There are four 'spare' sets of pin headers on the board that will all work with right angle headers. I would not solder these in unless you intend to use them.
-1. **J3**: This is for a soft E-Stop and provides GND & pin 27/A13. Headers go on the back.
-2. **J5**: Provides GND, pins 33, A16 & A17. Headers intended to go on the top of the board and GND+33 are provisionally for a 3mm LED 'torch' built into the case.
-3. **J4**: Provides GND, pins 34 (RX8) & 35 (TX8). Headers intended to be on top of the board.
-4. **J6**: Provides GND, 30, 31 & 32. Headers intended to be on bottom of the board.
+There are three 'spare' sets of pin headers on the board that will all work with right angle headers. I would not solder these in unless you intend to use them.
+1. **J5**: Provides GND, pins 33, A16 & A17. Headers intended to go on the top of the board and GND+33 are provisionally for a 3mm LED 'torch' built into the case.
+2. **J4**: Provides GND, pins 34 (RX8) & 35 (TX8). Headers intended to be on top of the board.
+3. **J6**: Provides GND, 30, 31 & 32. Headers intended to be on bottom of the board.
 
 The 3V3 & GND in the middle of the Teensy headers is intended for a Teensy 4.0 (untested and the 5 physical 'row buttons' will not be connected) but can otherwise be used as a 3V3 supply.
 
