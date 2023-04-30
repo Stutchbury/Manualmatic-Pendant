@@ -19,7 +19,7 @@
 
 #include <Arduino.h>
 
-#define MANUALMATIC_VERSION "0.0.2"
+#define MANUALMATIC_VERSION "0.1.0"
 // Color definitions @TODO Move to display?
 //https://github.com/adafruit/Adafruit_ILI9341/blob/master/Adafruit_ILI9341.h
 //https://chrishewett.com/blog/true-rgb565-colour-picker/
@@ -160,7 +160,8 @@ enum Cmd_ini_e : uint8_t {
   INI_LINEAR_UNITS = 'U',
   INI_ANGULAR_UNITS = 'u',
   INI_DEFAULT_LINEAR_VELOCITY = 'v',
-  INI_MAX_LINEAR_VELOCITY = 'V'
+  INI_MAX_LINEAR_VELOCITY = 'V',
+  INI_COMPLETE = '.'
 };
 
 

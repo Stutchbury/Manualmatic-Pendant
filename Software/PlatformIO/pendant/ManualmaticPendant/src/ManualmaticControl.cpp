@@ -35,14 +35,21 @@ ManualmaticControl::ManualmaticControl(ManualmaticMessage& serialMessage,
 { }
 /** ********************************************************************** */
 void ManualmaticControl::begin() {
+  //pinMode(SOFT_ESTOP, INPUT_PULLUP);
+  estopSwitch.attach(SOFT_ESTOP, INPUT_PULLUP);
   setupEncoders();
   setupButtons();
   setupButtonRowKeypad();
   setupOffsetKeypad();
   setupJoystick();
+  checkEstop(true);
 }
 /** ********************************************************************** */
 void ManualmaticControl::update() {
+  checkEstop();
+  if ( state.iniState == 1 ) {
+    onIniReceived();
+  }
   char cmd[2];
   char payload[30];
   if ( message.available(cmd, payload)) {
@@ -168,7 +175,33 @@ void ManualmaticControl::setupJoystick() {
 
 
 
+/** ********************************************************************** */
+void ManualmaticControl::checkEstop(bool force /*=false*/) {
+  if ( config.useSoftEstop) {
+    estopSwitch.update();
+    if ( estopSwitch.changed() || force) {
+      state.estop_is_activated = estopSwitch.read();
+      messenger.setMachineState(state.estop_is_activated ? STATE_ESTOP : STATE_ESTOP_RESET);
+    //Ensure the screen reflects the state of the local button and linuxcnc
+      if ( !state.estop_is_activated 
+          && state.isTaskState(STATE_ESTOP_RESET)
+          && state.isScreen(SCREEN_ESTOP) ) {
+        state.setScreen(SCREEN_ESTOP_RESET);
+      }
+    }
+    //Ensure the screen reflects the state of the local button
+    if ( state.estop_is_activated && !state.isScreen(SCREEN_ESTOP) ) {
+      state.setScreen(SCREEN_ESTOP);
+    }
+  }
+}
 
+void ManualmaticControl::onIniReceived() {
+  //Send pendant state back  
+  checkEstop(true);
+  //messenger.setMachineState(digitalRead(SOFT_ESTOP) == HIGH ? STATE_ESTOP : STATE_ESTOP_RESET); 
+  state.iniState = 2;
+}
 
 void ManualmaticControl::onFeedEncoder(EncoderButton& rb) {
   if ( state.isReady() && state.isManual() ) {

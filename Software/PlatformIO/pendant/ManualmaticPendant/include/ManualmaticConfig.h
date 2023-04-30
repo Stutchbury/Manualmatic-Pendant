@@ -25,6 +25,8 @@ class ManualmaticConfig {
 
   public:
 
+    bool useSoftEstop = true;
+
     uint8_t axes = 4;
 
     uint8_t defaultCoordSystem = 2; //G5x @TODO Not used yet

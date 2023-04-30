@@ -263,6 +263,9 @@ void ManualmaticState::setIniValue(char cmd1, char* payload) {
       config.max_linear_velocity = atof(payload);
       config.maxJogVelocity = config.max_linear_velocity*60;
       break;
+    case INI_COMPLETE:
+      iniState = 1;
+      break;
     //default:  
   }
 }

@@ -24,6 +24,7 @@
 #ifndef ManualmaticState_h
 #define ManualmaticState_h
 
+#include "ManualmaticWiring.h"
 #include "ManualmaticConsts.h"
 #include "ManualmaticConfig.h"
 #include "ManualmaticUtils.h"
@@ -68,7 +69,8 @@ class ManualmaticState {
     //   ButtonRow_e buttonRow = BUTTON_ROW_NONE;
     // };
     
-  
+    
+    uint8_t estop_is_activated = digitalRead(SOFT_ESTOP);
     Task_state_e task_state = STATE_INIT;
     Task_mode_e task_mode = MODE_UNKNOWN;
     Interp_e interpState = INTERP_IDLE;
@@ -104,6 +106,8 @@ class ManualmaticState {
     //float jogVelocity[2] = { defaultJogVelocity[0], defaultJogVelocity[1] }; //Sent to serial (as mm/min) but does not update gmoccapy
     float jogVelocity[2] = { 180, 3000 }; //Sent to serial (as mm/min) but does not update gmoccapy
     JogRange_e jogVelocityRange = JOG_RANGE_HIGH;
+    //
+    uint8_t iniState = 0;
     //
     bool refreshDisplay = false;
     Screen_e screen = SCREEN_INIT;

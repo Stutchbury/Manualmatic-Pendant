@@ -56,6 +56,7 @@ const uint8_t JOYSTICK_X = 39;        //JOY_X
 const uint8_t JOYSTICK_Y = 38;        //JOY_Y
 const uint8_t BUTTON_JOYSTICK = 29;   //JOY_SW
 
+const uint8_t SOFT_ESTOP = 27;        //Soft ESTOP
 
 
 

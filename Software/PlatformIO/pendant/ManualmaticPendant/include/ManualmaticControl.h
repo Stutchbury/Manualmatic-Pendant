@@ -17,6 +17,7 @@
 #include <EncoderButton.h>
 #include <EventButton.h>
 #include <EventJoystick.h>
+#include <Bounce2.h>
 #include "ManualmaticWiring.h"
 #include "ManualmaticConsts.h"
 #include "ManualmaticMessage.h"
@@ -87,6 +88,7 @@ class ManualmaticControl {
     EventButton buttonModifier;
     EventButton rowButtons[5];
 
+    Bounce estopSwitch = Bounce();
 
     EventJoystick joystick;
     EventButton buttonJoystick;
@@ -104,6 +106,8 @@ class ManualmaticControl {
     void setupOffsetKeypad();
     void setupJoystick();
 
+    void checkEstop(bool force=false);
+    void onIniReceived();
 
     void onFeedEncoder(EncoderButton& rb);
     void onFeedPressedEncoder(EncoderButton& rb);
