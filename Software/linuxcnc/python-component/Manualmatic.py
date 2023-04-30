@@ -67,6 +67,7 @@ class Manualmatic:
   INI_ANGULAR_UNITS = 'u'
   INI_DEFAULT_LINEAR_VELOCITY = 'v'
   INI_MAX_LINEAR_VELOCITY = 'V'
+  INI_COMPLETE = '.'
 
 
   # Used to feed back running, paused or stopped state for auto 
@@ -77,10 +78,12 @@ class Manualmatic:
 
   HEARTBEAT_MAX=2000
 
-  def __init__(self, _linuxcnc):
+  def __init__(self, _linuxcnc, _mmc):
     self.linuxcnc = _linuxcnc
     self.ls = self.linuxcnc.stat()
     self.lc = self.linuxcnc.command()
+    self.mmc = _mmc
+
     # Slightly frustrating we cannot use the error channel but understand why.
     # (if we pick the error off the queue here, it won't show in the main UI)
     # Could do with access to 'last error' instead...?
@@ -101,6 +104,7 @@ class Manualmatic:
 
 
   linuxcnc = None
+  mmc = None #Component
   ls = None #linuxcnc stat
   lc = None # command
   le = None # error
@@ -212,7 +216,8 @@ class Manualmatic:
     self.writeToSerial(self.CMD_INI_VALUE+self.INI_ANGULAR_UNITS, format(self.angular_units)) 
     self.writeToSerial(self.CMD_INI_VALUE+self.INI_DEFAULT_LINEAR_VELOCITY, format(self.default_linear_velocity)) 
     self.writeToSerial(self.CMD_INI_VALUE+self.INI_MAX_LINEAR_VELOCITY, format(self.max_linear_velocity)) 
-    
+    # Send empty ini cmd to denote end of ini values
+    self.writeToSerial(self.CMD_INI_VALUE+self.INI_COMPLETE)
 
   # #########################################################
   # Used for debug
@@ -530,7 +535,7 @@ class Manualmatic:
 
     # Jog
     elif ( cmd[0] == self.CMD_JOG_STOP and self.ls.axis_mask & (1<<int(cmd[1])) ):
-      print("Manualmatic: Jog Stop: " + cmd[1])
+      #print("Manualmatic: Jog Stop: " + cmd[1])
       if (self.ls.motion_mode != self.linuxcnc.TRAJ_MODE_TELEOP):
         self.lc.teleop_enable(True)
         self.lc.wait_complete()
@@ -548,7 +553,7 @@ class Manualmatic:
         None
 
     elif ( cmd[0] == self.CMD_JOG_CONTINUOUS and self.ls.axis_mask & (1<<int(cmd[1])) ):
-      print("Manualmatic: Jog Continuous: " + cmd[1])
+      #print("Manualmatic: Jog Continuous: " + cmd[1])
       if (self.ls.motion_mode != self.linuxcnc.TRAJ_MODE_TELEOP):
         self.lc.teleop_enable(True)
         self.lc.wait_complete()
@@ -571,6 +576,17 @@ class Manualmatic:
       and int(cmd[1]) == self.linuxcnc.STATE_OFF ):
         print("Manualmatic: turning machine off")
         self.lc.state(self.linuxcnc.STATE_OFF)
+      if (int(cmd[1]) == self.linuxcnc.STATE_ESTOP ):
+        print("Manualmatic: ESTOP")
+        #Set the hal pin
+        self.mmc['estop-is-activated'] = 1
+        self.lc.state(self.linuxcnc.STATE_ESTOP) # Shouldn't be necessary unless estop_latch is not comfigured
+      if (int(cmd[1]) == self.linuxcnc.STATE_ESTOP_RESET ):
+        print("Manualmatic: ESTOP_RESET")
+        #Set the hal pin 
+        self.mmc['estop-is-activated'] = 0
+        if (self.ls.task_state == self.linuxcnc.STATE_ESTOP ): #Will likely only happen if estop_latch is configured
+          self.lc.state(self.linuxcnc.STATE_ESTOP_RESET)
     
     # Jog velocity
     elif ( cmd[0] == self.CMD_JOG_VELOCITY ):

@@ -13,6 +13,7 @@
 ##
 
 import sys
+import time
 import hal
 import linuxcnc
 
@@ -20,21 +21,30 @@ from Manualmatic import Manualmatic
 
 PORT='/dev/ttyACM0'
 
+
 c = hal.component("manualmatic")
 
-mm = Manualmatic(linuxcnc)
+c.newpin("estop-is-activated", hal.HAL_BIT, hal.HAL_OUT)
 
-try:
-  mm.connect(PORT)
-  #mm.init(0.04) #run as a thread  
-  c.ready()
-  mm.start(0.04) #-OR- as no thread
+mm = Manualmatic(linuxcnc, c)
 
-except(KeyboardInterrupt):
-  mm.stop()
-  sys.exit(1)
+while True:
+  if (not mm.isRunning()):
+    try:
+      mm.connect(PORT)
+      #mm.init(0.04) #run as a thread  
+      if ( not hal.component_is_ready("manualmatic") ):
+        c.ready()
+      mm.start(0.04) #-OR- as no thread
 
-except(Exception):
-  raise
-  sys.exit(1)
+    except(KeyboardInterrupt):
+      mm.stop()
+      sys.exit(1)
 
+    except Exception as e:
+      print("Exception in manualmatic component")
+      print(e)
+      raise
+      sys.exit(1)
+
+  time.sleep(0.1)
