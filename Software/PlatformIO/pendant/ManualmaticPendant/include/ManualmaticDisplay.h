@@ -96,7 +96,7 @@ class ManualmaticDisplay {
       Task_mode_e task_mode = MODE_UNKNOWN;
       Flood_e flood = FLOOD_OFF;
       Mist_e mist = MIST_OFF;
-    
+      ErrorMessage_e errorMessage = ERRMSG_NONE;
     };
 
 
@@ -179,6 +179,7 @@ class ManualmaticDisplay {
      * This is the centred label for the button (when there are only yes/no options)
      */
     void drawButtonRowPrompt(char const* label );
+    void drawButtonRowError(char const* label );
     void drawStopButton();
     
     struct DisplayAreas_s {

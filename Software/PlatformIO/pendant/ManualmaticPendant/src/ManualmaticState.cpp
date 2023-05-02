@@ -225,7 +225,10 @@ void ManualmaticState::setSpindleRpm(int16_t incr) {
   }
 }
 
-
+void ManualmaticState::setErrorMessage(ErrorMessage_e error) {
+  errorMessage = error;
+  errorMessageStartTime = millis();
+}
 
 void ManualmaticState::setIniValue(char cmd1, char* payload) {
   switch (cmd1) {

@@ -119,6 +119,9 @@ class ManualmaticState {
     ButtonRow_e buttonRow = BUTTON_ROW_NONE;
     ButtonRow_e previousButtonRow = BUTTON_ROW_NONE;
 
+    ErrorMessage_e errorMessage = ERRMSG_NONE;
+    int errorMessageStartTime;
+
     char debug[20];
 
     // /**
@@ -200,7 +203,7 @@ class ManualmaticState {
      */
     void setSpindleRpm(int16_t incr);
 
-
+    void setErrorMessage(ErrorMessage_e error);
 
   private:
     ManualmaticConfig& config;

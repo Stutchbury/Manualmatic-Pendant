@@ -272,6 +272,8 @@ void ManualmaticControl::onSpindleLongPressed(EncoderButton& rb) {
       state.spindleRpm = config.default_spindle_speed;
     }
     messenger.sendSpindleOverride(); //Reset to 100%
+  } else {
+    state.setErrorMessage(ERRMSG_NOT_HOMED);
   }
 }
 
@@ -302,6 +304,11 @@ void ManualmaticControl::onButtonRowTouched(TouchKey& key) {
  * Update the state of physical button on the button row.
  */
 void ManualmaticControl::updateButtonRow() {
+  if ( state.errorMessage != ERRMSG_NONE) {
+    if ( millis() - state.errorMessageStartTime >= 1000 ) {
+      state.errorMessage = ERRMSG_NONE;
+    }
+  }
   if ( state.isButtonRow(BUTTON_ROW_AUTO) ) {
     // Switch play or pause based on program_state
     if ( state.isProgramState(PROGRAM_STATE_RUNNING) ) {

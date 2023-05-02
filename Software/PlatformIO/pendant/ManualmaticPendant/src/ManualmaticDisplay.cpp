@@ -616,6 +616,24 @@ void ManualmaticDisplay::drawFeedVelocity(bool forceRefresh /*= false*/ ) {
 
 
 void ManualmaticDisplay::drawButtonRow(bool forceRefresh /*= false*/) {
+  if ( forceRefresh || drawn.errorMessage != state.errorMessage ) {
+    const char *errmsg = nullptr;
+    switch( state.errorMessage ) {
+      case ERRMSG_NONE:
+        break;
+      case ERRMSG_NOT_HOMED:
+        errmsg = "Not homed";
+        break;
+    }
+    if ( errmsg ) {
+      brkp.clear();
+      drawButtonRowError(errmsg);
+    }
+    drawn.errorMessage = state.errorMessage;
+  }
+  if ( state.errorMessage != ERRMSG_NONE ) {
+    return;
+  }
   if ( forceRefresh || drawn.buttonRow != state.buttonRow ) {
     brkp.clear();
     //Draw the configured buttons
@@ -655,6 +673,17 @@ void ManualmaticDisplay::drawButtonRowPrompt(char const* label ) {
   int16_t  x, y;
   uint16_t w, h;
   gfx.fillRect(areas.buttonLabels[1].x() - 1, areas.buttonLabels[1].y()+1, (areas.buttonLabels[1].w() * 3) + 5, areas.buttonLabels[3].h(), BLACK);
+  gfx.setFont(&FreeSansBold12pt7b);
+  gfx.getTextBounds(label, areas.buttonLabels[2].x(), areas.encoderLabel[0].b(), &x, &y, &w, &h);
+  gfx.setCursor(areas.buttonLabels[2].xCl() - (w / 2), areas.buttonLabels[2].yCl() + (h / 2));
+  gfx.setTextColor(WHITE);
+  gfx.print(label);
+}
+
+void ManualmaticDisplay::drawButtonRowError(char const* label ) {
+  int16_t  x, y;
+  uint16_t w, h;
+  gfx.fillRect(areas.buttonLabels[1].x() - 1, areas.buttonLabels[1].y()+1, (areas.buttonLabels[1].w() * 3) + 5, areas.buttonLabels[3].h(), RED);
   gfx.setFont(&FreeSansBold12pt7b);
   gfx.getTextBounds(label, areas.buttonLabels[2].x(), areas.encoderLabel[0].b(), &x, &y, &w, &h);
   gfx.setCursor(areas.buttonLabels[2].xCl() - (w / 2), areas.buttonLabels[2].yCl() + (h / 2));

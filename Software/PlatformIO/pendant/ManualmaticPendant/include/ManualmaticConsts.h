@@ -242,6 +242,9 @@ const unsigned long feedRateLimit = 100; //ms
 
 const char coordSystem[3][4] = {"Abs", "DTG", "G54"};
 
-
+enum ErrorMessage_e : uint8_t {
+    ERRMSG_NONE,
+    ERRMSG_NOT_HOMED,
+};
 
 #endif //ManualmaticConsts_h
