@@ -204,7 +204,10 @@ void ManualmaticControl::onIniReceived() {
 }
 
 void ManualmaticControl::onFeedEncoder(EncoderButton& rb) {
-  if ( state.isReady() && state.isManual() ) {
+  if ( !checkReadyState() ) {
+    return;
+  }
+  if ( state.isManual() ) {
     messenger.incrementJogVelocity(rb.increment() * abs(rb.increment())); //Accelerate
   } else {
     messenger.incrementFeedrate(rb.increment() * abs(rb.increment())); //Accelerate
@@ -237,8 +240,11 @@ void ManualmaticControl::onFeedLongPress(EncoderButton& rb) {
 }
 
 void ManualmaticControl::onSpindleEncoder(EncoderButton& rb) {
+  if ( !checkReadyState() ) {
+    return;
+  }
   int16_t incr = rb.increment() * abs(rb.increment()); //Accelerate
-  if ( state.isReady() && !state.isAuto() && state.spindleSpeed == 0 ) { // && state.spindleArmed == true ) {
+  if ( !state.isAuto() && state.spindleSpeed == 0 ) { // && state.spindleArmed == true ) {
     state.setSpindleRpm(incr);
   } else {
     messenger.incrementSpindleOverride(incr);
@@ -246,7 +252,10 @@ void ManualmaticControl::onSpindleEncoder(EncoderButton& rb) {
 }
 
 void ManualmaticControl::onSpindleClicked(EncoderButton& rb) {
-  if ( state.isReady() && !state.isAuto() && state.spindleSpeed != 0 ) { //&& isManual() ) {
+  if ( !checkReadyState() ) {
+    return;
+  }
+  if ( !state.isAuto() && state.spindleSpeed != 0 ) { //&& isManual() ) {
     state.setButtonRow(BUTTON_ROW_SPINDLE_STOP);
   } else if ( state.isButtonRow(BUTTON_ROW_SPINDLE_START) ) {
       //Do same as cancel
@@ -255,7 +264,11 @@ void ManualmaticControl::onSpindleClicked(EncoderButton& rb) {
 }
 
 void ManualmaticControl::onSpindleDoubleClicked(EncoderButton& rb) {
-  if ( state.isReady() && !state.isAuto() ) {
+  if ( !checkReadyState() ) {
+    return;
+  }
+
+  if ( !state.isAuto() ) {
     //Only arm if no other buttons in use and spindle is stopped
     if ( state.isButtonRow(BUTTON_ROW_MANUAL) && state.spindleSpeed == 0 ) {      
       state.setButtonRow(BUTTON_ROW_SPINDLE_START);
@@ -267,19 +280,21 @@ void ManualmaticControl::onSpindleDoubleClicked(EncoderButton& rb) {
 }
 
 void ManualmaticControl::onSpindleLongPressed(EncoderButton& rb) {
-  if ( state.isReady() ) {
-    if ( state.isManual() && state.spindleSpeed == 0 ) {
-      state.spindleRpm = config.default_spindle_speed;
-    }
-    messenger.sendSpindleOverride(); //Reset to 100%
-  } else {
-    state.setErrorMessage(ERRMSG_NOT_HOMED);
+  if ( !checkReadyState() ) {
+    return;
   }
+  if ( state.isManual() && state.spindleSpeed == 0 ) {
+    state.spindleRpm = config.default_spindle_speed;
+  }
+  messenger.sendSpindleOverride(); //Reset to 100%
 }
 
 
 void ManualmaticControl::onMpgEncoder(EncoderButton& rb) {
-  if ( state.isReady() && state.isManual() && state.currentAxis != AXIS_NONE ) {
+  if ( !checkReadyState() ) {
+    return;
+  }
+  if ( state.isManual() && state.currentAxis != AXIS_NONE ) {
     if ( state.isScreen(SCREEN_MANUAL) ) {
       messenger.jogAxis(state.currentAxis, (config.jogIncrements[state.currentJogIncrement] * rb.increment()) );
     }
@@ -339,18 +354,30 @@ void ManualmaticControl::onOnOffLongPress(EventButton& btn) {
 }
 /** ********************************************************************** */
 void ManualmaticControl::toggleXSelected(EventButton& btn) {
+  if ( !checkReadyState() ) {
+    return;
+  }
   toggleSelectedAxis(AXIS_X);
 }
 /** ********************************************************************** */
 void ManualmaticControl::toggleYSelected(EventButton& btn) {
+  if ( !checkReadyState() ) {
+    return;
+  }
   toggleSelectedAxis(AXIS_Y);
 }
 /** ********************************************************************** */
 void ManualmaticControl::toggleZSelected(EventButton& btn) {
+  if ( !checkReadyState() ) {
+    return;
+  }
   toggleSelectedAxis(AXIS_Z);
 }
 /** ********************************************************************** */
 void ManualmaticControl::toggleASelected(EventButton& btn) {
+  if ( !checkReadyState() ) {
+    return;
+  }
   toggleSelectedAxis(AXIS_A);
 }
 /** ********************************************************************** */
@@ -376,13 +403,26 @@ void ManualmaticControl::displayDtg(EventButton& btn) {
 }
 /** ********************************************************************** */
 void ManualmaticControl::toggleSelectedAxis(Axis_e axis) {
-  if ( state.isScreen(SCREEN_MANUAL) && state.isReady() && !state.isAuto() ) {
+  if ( !checkReadyState() ) {
+    return;
+  }
+  if ( state.isScreen(SCREEN_MANUAL) && !state.isAuto() ) {
     if ( state.currentAxis == axis ) {
       state.currentAxis = AXIS_NONE;
       messenger.jogAxisStop(axis);
     } else if ( state.displayedAxes > axis  ) {
       state.currentAxis = axis;
     }
+  }
+}
+/** ********************************************************************** */
+void ManualmaticControl::zeroAxis(Axis_e axis) {
+  if ( !checkReadyState() ) {
+    return;
+  }
+  if ( state.isScreen(SCREEN_MANUAL) && !state.isAuto() ) {
+    char buf[20] = {'0', '\0'};
+    messenger.sendG5xOffset(axis, buf);
   }
 }
 /** ********************************************************************** */
@@ -629,8 +669,11 @@ void ManualmaticControl::setButtonRowCancelOrPlay(ButtonRow_e b) {
  * 
  */
 void ManualmaticControl::onButtonPlay() {
+  if ( !checkReadyState() ) {
+    return;
+  }
 //  doActionPlay();
-  if ( state.isReady() && state.isAuto() ) {
+  if ( state.isAuto() ) {
     if ( state.isButtonRow(BUTTON_ROW_AUTO) ) {
       if ( state.isProgramState(PROGRAM_STATE_STOPPED) ) {
         state.setButtonRow(BUTTON_ROW_PROGRAM_START);
@@ -654,7 +697,10 @@ void ManualmaticControl::onButtonPlay() {
  * 
  */
 void ManualmaticControl::onButtonPause() {
-  if ( state.isReady() && state.isAuto() ) {
+  if ( !checkReadyState() ) {
+    return;
+  }
+  if ( state.isAuto() ) {
     if ( state.isButtonRow(BUTTON_ROW_AUTO) ) {
       if ( state.isProgramState(PROGRAM_STATE_RUNNING) ) {
         messenger.sendAuto(AUTO_PAUSE);
@@ -667,7 +713,10 @@ void ManualmaticControl::onButtonPause() {
  * 
  */
 void ManualmaticControl::onButtonOneStep() {
-  if ( state.isReady() && state.isAuto() ) {
+  if ( !checkReadyState() ) {
+    return;
+  }
+  if ( state.isAuto() ) {
     if ( state.isButtonRow(BUTTON_ROW_AUTO) ) {
       if ( state.isProgramState(PROGRAM_STATE_STOPPED) || state.isProgramState(PROGRAM_STATE_PAUSED) ) {
         messenger.sendAuto(AUTO_STEP);
@@ -680,7 +729,10 @@ void ManualmaticControl::onButtonOneStep() {
  * 
  */
 void ManualmaticControl::onButtonHalt() {
-  if ( state.isReady() && state.isAuto() ) {
+  if ( !checkReadyState() ) {
+    return;
+  }
+  if ( state.isAuto() ) {
     if ( state.isButtonRow(BUTTON_ROW_AUTO) ) {
       if ( state.isProgramState(PROGRAM_STATE_RUNNING) || state.isProgramState(PROGRAM_STATE_PAUSED) ) {
         messenger.sendAbort();
@@ -697,7 +749,10 @@ void ManualmaticControl::onButtonHalt() {
  * 
  */
 void ManualmaticControl::onButtonCancel() {
-  if ( state.isReady() && !state.isAuto() ) {
+  if ( !checkReadyState() ) {
+    return;
+  }
+  if ( !state.isAuto() ) {
     if ( state.isButtonRow(BUTTON_ROW_SPINDLE_START) ) {
       state.setButtonRow(BUTTON_ROW_DEFAULT);
     } else if ( state.isButtonRow(BUTTON_ROW_SPINDLE_STOP) ) {
@@ -706,7 +761,7 @@ void ManualmaticControl::onButtonCancel() {
       onCancelG5xOffset();
     }
   }
-  else if ( state.isReady() && state.isAuto() ) {
+  else if ( state.isAuto() ) {
     if ( state.isButtonRow(BUTTON_ROW_PROGRAM_START) ) {
       state.setButtonRow(BUTTON_ROW_DEFAULT);
     }
@@ -715,7 +770,10 @@ void ManualmaticControl::onButtonCancel() {
 
 
 void ManualmaticControl::onButtonTick() {
-  if ( state.isReady() && !state.isAuto() ) {
+  if ( !checkReadyState() ) {
+    return;
+  }
+  if ( !state.isAuto() ) {
     if ( state.isButtonRow(BUTTON_ROW_SPINDLE_START) ) {
       messenger.startSpindle();
       state.setButtonRow(BUTTON_ROW_DEFAULT);
@@ -726,7 +784,10 @@ void ManualmaticControl::onButtonTick() {
 }
 
 void ManualmaticControl::onButtonStop() {
-  if ( state.isReady() && !state.isAuto() ) {
+  if ( !checkReadyState() ) {
+    return;
+  }
+  if ( !state.isAuto() ) {
     if ( state.isButtonRow(BUTTON_ROW_SPINDLE_STOP) ) {
       messenger.stopSpindle();
       state.setButtonRow(BUTTON_ROW_DEFAULT);
@@ -735,12 +796,13 @@ void ManualmaticControl::onButtonStop() {
 }
 
 void ManualmaticControl::toggleCoolant(bool doubleClick /*=false*/) {
-  if ( state.isReady() ) {
-    if ( doubleClick ) {
-      messenger.sendFlood(state.flood == FLOOD_OFF ? FLOOD_ON : FLOOD_OFF);      
-    } else {
-      messenger.sendMist(state.mist == MIST_OFF ? MIST_ON : MIST_OFF);
-    }
+  if ( !checkReadyState() ) {
+    return;
+  }
+  if ( doubleClick ) {
+    messenger.sendFlood(state.flood == FLOOD_OFF ? FLOOD_ON : FLOOD_OFF);      
+  } else {
+    messenger.sendMist(state.mist == MIST_OFF ? MIST_ON : MIST_OFF);
   }
 }
 
@@ -748,6 +810,9 @@ void ManualmaticControl::toggleCoolant(bool doubleClick /*=false*/) {
  * Setup the touch keypad for g5x offsets
  */
 void ManualmaticControl::onButtonTouchOff() {
+  if ( !checkReadyState() ) {
+    return;
+  }
   if ( state.isButtonRow(BUTTON_ROW_MANUAL) && state.currentAxis != AXIS_NONE ) {
     state.setScreen(SCREEN_OFFSET_KEYPAD);
     okp.enable(); //Enable the offset touch keypad
@@ -774,7 +839,10 @@ void ManualmaticControl::onSetG5xOffset() {
 
 
 void ManualmaticControl::onJoystickXChanged(EventAnalog& ea) {
-  if ( state.isReady() && state.isManual() ) {
+  if ( !checkReadyState() ) {
+    return;
+  }
+  if ( state.isManual() ) {
     if ( state.isScreen(SCREEN_MANUAL) && state.joystickAxis[0] != AXIS_NONE ) {
       messenger.jogAxisContinuous(state.joystickAxis[0], (state.jogVelocity[state.jogVelocityRange]/config.numJoystickIncrements) * ea.position());
     }
@@ -782,7 +850,10 @@ void ManualmaticControl::onJoystickXChanged(EventAnalog& ea) {
 }
 
 void ManualmaticControl::onJoystickYChanged(EventAnalog& ea) {
-  if ( state.isReady() && state.isManual() ) {
+  if ( !checkReadyState() ) {
+    return;
+  }
+  if ( state.isManual() ) {
     if ( state.isScreen(SCREEN_MANUAL) && state.joystickAxis[1] != AXIS_NONE  ) {
       messenger.jogAxisContinuous(state.joystickAxis[1], (state.jogVelocity[state.jogVelocityRange]/config.numJoystickIncrements) * ea.position());
     }
@@ -794,6 +865,9 @@ void ManualmaticControl::onJoystickIdle(EventJoystick& ejs) {
 }
 
 void ManualmaticControl::onJoystickClicked(EventButton& ejs) {
+  if ( !checkReadyState() ) {
+    return;
+  }
   if ( !joystick.enabled() || state.joystickAxis[0] == AXIS_NONE ) {
     joystick.enable(true);
     state.joystickAxis[0] = config.joystickAxisDefault[0];
@@ -806,6 +880,9 @@ void ManualmaticControl::onJoystickClicked(EventButton& ejs) {
 }
 
 void ManualmaticControl::onJoystickDoubleClicked(EventButton& ejs) {
+  if ( !checkReadyState() ) {
+    return;
+  }
   joystick.enable(true);  
   state.joystickAxis[0] = config.joystickAxisAlt[0];
   state.joystickAxis[1] = config.joystickAxisAlt[1];
@@ -815,4 +892,15 @@ void ManualmaticControl::onButtonModifierPressed(EventButton& rb) {
 }
 
 void ManualmaticControl::onButtonModifierReleased(EventButton& rb) {
+}
+
+bool ManualmaticControl::checkReadyState() {
+  if ( state.task_state != STATE_ON ) {
+    return false;
+  }
+  if ( !state.isHomed() ) {
+    state.setErrorMessage(ERRMSG_NOT_HOMED);
+    return false;
+  }
+  return true;
 }
