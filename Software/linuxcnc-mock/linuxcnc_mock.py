@@ -191,10 +191,10 @@ class linuxcnc_mock():
   spindle_speed = None
   spindle_override = None # 0 off, 1 on
   spindle_override_val = 1 #%
-  homed = [0,0,0,0,0,0,0,0]
-  actual_position = [0.0]*8
-  g5x_offset = [0.0]*8
-  dtg = [None, None, None, None, None, None, None, None]
+  homed = [0] * 9
+  actual_position = [0.0]*9
+  g5x_offset = [0.0]*9
+  dtg = [0.0] * 9
   g5x_index = 1
   feedrate = 1
   feed_override_enabled = 0
