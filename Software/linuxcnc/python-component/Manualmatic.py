@@ -23,6 +23,8 @@ import subprocess
 #from hal_glib import GStat
 #import gobject
 
+dump_serial_comms = False
+
 def fmtround5(value):
   return "%0.5f" % (value,)
 
@@ -209,7 +211,8 @@ class SerialInterface:
         return False
 
   def writeCommand(self, cmd, payload):
-    # print ("Outgoing:", repr(cmd), repr(payload))
+    if dump_serial_comms:
+      print ("Manualmatic: Outgoing(" + repr(cmd) + ", " + repr(payload) + ")")
     return self.write(self.STX + cmd.encode() + payload.encode() + self.ETX)
 
   def write(self, data):
@@ -219,9 +222,8 @@ class SerialInterface:
       self.connection.write(data)
       return True
     except serial.SerialException as se:
-      print ("Write failed")
-      self.owner.onDisconnected()
       print("Manualmatic: Exception in manualmatic.write ToSerial()", str(se))
+      self.owner.onDisconnected()
       return False
 
 class MachineStateValue:
@@ -600,7 +602,8 @@ class Manualmatic(Commands):
   # #########################################################
   # Called if a valid message is received
   def processCmd(self, cmd, payload):
-    print ("Incoming:", repr(cmd), repr(payload))
+    if dump_serial_comms:
+      print ("Manualmatic: Incoming(" + repr(cmd) + ", " + repr(payload) + ")")
     #print("processCmd...")
     #print(cmd, ':', payload)
 
@@ -786,12 +789,15 @@ class Manualmatic(Commands):
   # #########################################################
   # Called on successful opening of the serial port
   def onConnected(self):
+    self.last_heartbeat = 0
     self.resetState()
 
   # #########################################################
   # Called on when the serial port has been disconnected
   def onDisconnected(self):
-    pass
+    if self.ls.motion_mode == self.linuxcnc.TRAJ_MODE_TELEOP:
+      for axis in self.axes_list:
+        self.lc.jog(self.linuxcnc.JOG_STOP, False, axis)
 
   # #########################################################
   # Run the loop to check incoming serial data and
