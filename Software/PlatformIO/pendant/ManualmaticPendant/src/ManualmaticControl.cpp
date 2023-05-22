@@ -416,16 +416,6 @@ void ManualmaticControl::toggleSelectedAxis(Axis_e axis) {
   }
 }
 /** ********************************************************************** */
-void ManualmaticControl::zeroAxis(Axis_e axis) {
-  if ( !checkReadyState() ) {
-    return;
-  }
-  if ( state.isScreen(SCREEN_MANUAL) && !state.isAuto() ) {
-    char buf[20] = {'0', '\0'};
-    messenger.sendG5xOffset(axis, buf);
-  }
-}
-/** ********************************************************************** */
 void ManualmaticControl::onButtonALongPressed(EventButton& rb) {
   //if ( isScreen(SCREEN_MANUAL) ) {
     toggleDisplayAAxis(rb);
