@@ -147,12 +147,17 @@ class ManualmaticState {
       return all_homed == 1;
     }
 
-    bool isReady() {
-      return ( task_state == STATE_ON && isHomed() );
-    }
+    /**
+     * @brief Check if the machine is on and homed.
+     * 
+     * By default, set a message if not homed. Can be used silently by
+     * passing 'false'.
+     * 
+     */
+    bool isReady(bool setMessage = true);
 
     bool isIdle() {
-      return isReady() && interpState == INTERP_IDLE;
+      return isReady(false) && interpState == INTERP_IDLE;
     }
 
     bool isManual() {

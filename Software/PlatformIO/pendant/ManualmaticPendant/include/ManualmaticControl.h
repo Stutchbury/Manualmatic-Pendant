@@ -216,7 +216,6 @@ class ManualmaticControl {
     void onCancelG5xOffset();
     void onSetG5xOffset();
 
-    bool checkReadyState();
 };
 
 

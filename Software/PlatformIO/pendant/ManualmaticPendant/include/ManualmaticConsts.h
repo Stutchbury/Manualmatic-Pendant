@@ -19,7 +19,7 @@
 
 #include <Arduino.h>
 
-#define MANUALMATIC_VERSION "0.1.0"
+#define MANUALMATIC_VERSION "0.2.0-dev"
 // Color definitions @TODO Move to display?
 //https://github.com/adafruit/Adafruit_ILI9341/blob/master/Adafruit_ILI9341.h
 //https://chrishewett.com/blog/true-rgb565-colour-picker/

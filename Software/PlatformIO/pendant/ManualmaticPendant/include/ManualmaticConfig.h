@@ -57,6 +57,8 @@ class ManualmaticConfig {
     uint8_t numJoystickIncrements = 8;
     Axis_e joystickAxisDefault[2] = {AXIS_X, AXIS_Y};
     Axis_e joystickAxisAlt[2] = {AXIS_A, AXIS_Z};
+
+    uint16_t errorMessageTimeout = 2000;
   
 };
 

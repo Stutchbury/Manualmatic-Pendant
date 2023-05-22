@@ -33,7 +33,7 @@ ManualmaticDisplay::ManualmaticDisplay(
 
       areas.axisMarkers = DisplayArea(0, 0, 16, axesAreaHeight);
 
-      areas.debugRow = DisplayArea(0, areas.buttonLabels[0].y(), 340, areas.buttonLabels[0].h());
+      areas.debugRow = DisplayArea(0, areas.buttonLabels[0].y(), displayWidth, areas.buttonLabels[0].h());
 
 
   }
@@ -683,7 +683,7 @@ void ManualmaticDisplay::drawButtonRowPrompt(char const* label ) {
 void ManualmaticDisplay::drawButtonRowError(char const* label ) {
   int16_t  x, y;
   uint16_t w, h;
-  gfx.fillRect(areas.buttonLabels[1].x() - 1, areas.buttonLabels[1].y()+1, (areas.buttonLabels[1].w() * 3) + 5, areas.buttonLabels[3].h(), RED);
+  gfx.fillRect(areas.buttonLabels[0].x(), areas.buttonLabels[1].y()+1, displayWidth, areas.buttonLabels[0].h(), RED);
   gfx.setFont(&FreeSansBold12pt7b);
   gfx.getTextBounds(label, areas.buttonLabels[2].x(), areas.encoderLabel[0].b(), &x, &y, &w, &h);
   gfx.setCursor(areas.buttonLabels[2].xCl() - (w / 2), areas.buttonLabels[2].yCl() + (h / 2));

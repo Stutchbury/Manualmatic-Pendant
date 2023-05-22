@@ -272,3 +272,23 @@ void ManualmaticState::setIniValue(char cmd1, char* payload) {
     //default:  
   }
 }
+
+/**
+ * @brief Check if the machine is on and homed.
+ * 
+ * By default, set a message if not homed. Can be used silently by
+ * passing 'false'.
+ * 
+ */
+bool ManualmaticState::isReady(bool setMessage /*= true*/)  {
+  if ( task_state != STATE_ON ) {
+    return false;
+  }
+  if ( !isHomed() ) {
+    if ( setMessage ) {
+      setErrorMessage(ERRMSG_NOT_HOMED);
+    }
+    return false;
+  }
+  return true;
+}
