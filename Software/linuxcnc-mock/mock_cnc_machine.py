@@ -27,11 +27,13 @@ from Manualmatic import Manualmatic, SerialInterface
 
 exitapp = False
 
-from linuxcnc_mock import linuxcnc_mock
+from linuxcnc_mock import linuxcnc_mock, hal
 c = {"estop-is-activated": 0}
-linuxcnc = linuxcnc_mock()
+hal = hal()
+linuxcnc = linuxcnc_mock(hal)
 
-mm = Manualmatic(linuxcnc, c, SerialInterface())
+
+mm = Manualmatic(linuxcnc, hal, c, SerialInterface())
 
 
 def initPendant():
