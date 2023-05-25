@@ -388,8 +388,10 @@ class Manualmatic(Commands):
       self.min_spindle_override = self.inifile.find('DISPLAY', 'MIN_SPINDLE_OVERRIDE') or 0.5
       self.max_spindle_override = self.inifile.find('DISPLAY', 'MAX_SPINDLE_OVERRIDE') or 1.5
       self.default_spindle_speed = self.inifile.find('DISPLAY', 'DEFAULT_SPINDLE_SPEED') or 1000
-      self.max_spindle_speed = float(self.inifile.find('SPINDLE_0', 'MAX_VELOCITY'))*60 or 0
-      if ( self.max_spindle_speed == 0 ):
+      self.max_spindle_speed = self.inifile.find('SPINDLE_0', 'MAX_VELOCITY') or 0
+      if ( self.max_spindle_speed != 0 ):
+        self.max_spindle_speed = float(self.max_spindle_speed) * 60
+      else:
         self.max_spindle_speed = self.inifile.find('DISPLAY', 'MAX_SPINDLE_SPEED') or 3000
       self.linear_units = self.inifile.find('TRAJ', 'LINEAR_UNITS') or 'mm'
       self.angular_units = self.inifile.find('TRAJ', 'ANGULAR_UNITS') or 'degree'
