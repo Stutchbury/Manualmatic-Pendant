@@ -24,11 +24,14 @@ void ManualmaticState::update(char cmd[2], char payload[30]) {
         motion_type = static_cast<Motion_type_e>(cmd[1]-'0');
         setCurrentVelocities();
         break;
-      case CMD_SPINDLE_SPEED:
-        spindleSpeed = atof(payload);
+      case CMD_SPINDLE_RPM:
+        spindleRpm = atof(payload);
         break;
       case CMD_SPINDLE_OVERRIDE:
         spindleOverride = atof(payload);
+        break;
+      case CMD_SPINDLE_DIRECTION:
+        spindleDirection = atoi(payload);
         break;
   //    case CMD_MAX_FEED_OVERRIDE: //@TODO move to ini?
   //      feedSpeed = atof(payload);
@@ -36,8 +39,8 @@ void ManualmaticState::update(char cmd[2], char payload[30]) {
       case CMD_FEED_OVERRIDE:
         feedrate = atof(payload);
         break;
-      case CMD_RAPID_SPEED: // @TODO not used?
-        rapidSpeed = atof(payload);
+      case CMD_SPINDLE_SPEED: // @TODO not used?
+        spindleSpeed = atof(payload);
         break;
       case CMD_RAPID_OVERRIDE:
         rapidrate = atof(payload);
@@ -216,12 +219,17 @@ void ManualmaticState::incrementJogIncrement(int16_t incr) {
   currentJogIncrement = min(max(0, currentJogIncrement+incr),3);
 }
 
-void ManualmaticState::setSpindleRpm(int16_t incr) {
-  spindleRpm = spindleRpm + (incr * 10);
-  if ( currentSpindleDir == 1 ) {
-    spindleRpm = max(spindleRpm,0);
-  } else if ( currentSpindleDir == -1 ) {
-    spindleRpm = min(spindleRpm, 0);
+/**
+ * @brief Set the commanded spindle speed
+ * 
+ * @param incr 
+ */
+void ManualmaticState::setSpindleSpeed(int16_t incr) {
+  spindleSpeed = spindleSpeed + (incr * 10);
+  if ( spindleSpeed > 0 ) {
+    spindleSpeed = min(max(spindleSpeed,0), (config.max_spindle_speed/spindleOverride));
+  } else if ( spindleSpeed < 0 ) {
+    spindleSpeed = max(min(spindleSpeed, 0), ((config.max_spindle_speed/spindleOverride)*-1));
   }
 }
 
@@ -249,7 +257,12 @@ void ManualmaticState::setIniValue(char cmd1, char* payload) {
       break;
     case INI_DEFAULT_SPINDLE_SPEED:
       config.default_spindle_speed = atof(payload);
-      spindleRpm = config.default_spindle_speed;
+      if ( spindleSpeed == 0 ) {
+        spindleSpeed = config.default_spindle_speed;
+      }
+      break;
+    case INI_MAX_SPINDLE_SPEED:
+      config.max_spindle_speed = atof(payload);
       break;
 //@TODO
 //      self.writeToSerial('iU', format(self.linear_units)) 
@@ -265,6 +278,9 @@ void ManualmaticState::setIniValue(char cmd1, char* payload) {
     case INI_MAX_LINEAR_VELOCITY:
       config.max_linear_velocity = atof(payload);
       config.maxJogVelocity = config.max_linear_velocity*60;
+      break;
+    case INI_NO_FORCE_HOMING:
+      config.noForceHoming = (atoi(payload) == 1);
       break;
     case INI_COMPLETE:
       iniState = 1;
@@ -284,7 +300,7 @@ bool ManualmaticState::isReady(bool setMessage /*= true*/)  {
   if ( task_state != STATE_ON ) {
     return false;
   }
-  if ( !isHomed() ) {
+  if ( !config.noForceHoming && !isHomed() ) {
     if ( setMessage ) {
       setErrorMessage(ERRMSG_NOT_HOMED);
     }

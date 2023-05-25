@@ -80,8 +80,9 @@ class ManualmaticDisplay {
       uint8_t displayedAxes = 4;
       uint8_t displayedCoordSystem = 2;
       float spindleOverride = 1;
-      float spindleRpm = 400; // @TODO set from config default Spindle rpm set on the pendant
-      float spindleSpeed = 0; // Set speed of the spindle on the machine
+      float spindleSpeed = 400; // Commanded spindle speed (multiplied by override to give rpm)
+      float spindleRpm = 0; // Actual spindale speed
+      int8_t spindleDirection = 0; //Indicates whether spindle is on or off 1=fwd, -1=rev, 0=stopped
       float rapidrate = 1;
       float rapidSpeed = 0;
       float rapid_vel = 0; //locally calculated for display based on current_vel & motion_type
@@ -120,6 +121,7 @@ class ManualmaticDisplay {
      */
     void drawScreenManual(bool forceRefresh = false);
     void drawScreenAuto(bool forceRefresh);
+    void drawScreenMdi(bool forceRefresh);
     void drawScreenSplash(bool forceRefresh);
     void drawScreenEstopped(bool forceRefresh);
     void drawScreenEstopReset(bool forceRefresh);
@@ -155,7 +157,7 @@ class ManualmaticDisplay {
     /** ***************************************************************
        In manual mode, spindle RPM is set directly
     */
-    void drawSpindleRpm(bool forceRefresh = false );
+    void drawSpindleSpeed(bool forceRefresh = false );
 
     void drawEncoderValue(uint8_t pos, uint8_t lineNum, const char *val, const char *uom, int bg = BLACK, int fg = WHITE );
     void drawEncoderValue(uint8_t pos, uint8_t lineNum, const char *val, int bg = BLACK, int fg = WHITE );
@@ -164,7 +166,7 @@ class ManualmaticDisplay {
     /** ***************************************************************
        Actual spindle speed
     */
-    void drawSpindleSpeed(bool forceRefresh = false );
+    void drawSpindleRpm(bool forceRefresh = false );
     void drawJogIncrement(bool forceRefresh = false );
     void drawJogVelocity(bool forceRefresh = false );
 

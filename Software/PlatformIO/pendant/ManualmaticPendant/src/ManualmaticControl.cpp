@@ -244,9 +244,14 @@ void ManualmaticControl::onSpindleEncoder(EncoderButton& rb) {
     return;
   }
   int16_t incr = rb.increment() * abs(rb.increment()); //Accelerate
-  if ( !state.isAuto() && state.spindleSpeed == 0 ) { // && state.spindleArmed == true ) {
-    state.setSpindleRpm(incr);
+  if ( state.isManual() ) {
+    state.setSpindleSpeed(incr);
+    //Calculate the override
+    if ( state.spindleDirection != 0 ) {
+      messenger.sendSpindleSpeed();
+    }
   } else {
+    //Just the plain override
     messenger.incrementSpindleOverride(incr);
   }
 }
@@ -255,7 +260,7 @@ void ManualmaticControl::onSpindleClicked(EncoderButton& rb) {
   if ( !state.isReady() ) {
     return;
   }
-  if ( !state.isAuto() && state.spindleSpeed != 0 ) { //&& isManual() ) {
+  if ( !state.isAuto() && state.spindleDirection != 0 ) { 
     state.setButtonRow(BUTTON_ROW_SPINDLE_STOP);
   } else if ( state.isButtonRow(BUTTON_ROW_SPINDLE_START) ) {
       //Do same as cancel
@@ -270,7 +275,7 @@ void ManualmaticControl::onSpindleDoubleClicked(EncoderButton& rb) {
 
   if ( !state.isAuto() ) {
     //Only arm if no other buttons in use and spindle is stopped
-    if ( state.isButtonRow(BUTTON_ROW_MANUAL) && state.spindleSpeed == 0 ) {      
+    if ( state.isButtonRow(BUTTON_ROW_MANUAL) && state.spindleRpm == 0 ) {      
       state.setButtonRow(BUTTON_ROW_SPINDLE_START);
     } else if ( state.isButtonRow(BUTTON_ROW_SPINDLE_START) ) {
       //Do same as cancel
@@ -283,10 +288,12 @@ void ManualmaticControl::onSpindleLongPressed(EncoderButton& rb) {
   if ( !state.isReady() ) {
     return;
   }
-  if ( state.isManual() && state.spindleSpeed == 0 ) {
-    state.spindleRpm = config.default_spindle_speed;
-  }
   messenger.sendSpindleOverride(); //Reset to 100%
+  // If manual mode and spindle not running also reset
+  // to default?
+  if ( state.isManual() && state.spindleRpm == 0 ) {
+    state.setSpindleSpeed(config.default_spindle_speed);
+  }
 }
 
 
@@ -441,8 +448,8 @@ void ManualmaticControl::toggleDisplayAAxis(EventButton& btn) {
 /** ********************************************************************** */
 void ManualmaticControl::onButtonModeClicked(EventButton& btn) {
   if ( state.isProgramState(PROGRAM_STATE_STOPPED) || state.isProgramState(PROGRAM_STATE_NONE) ) {
-    //uint8_t m = (state.task_mode % 3) + 1; //or (1+x)%3 from 0
-    uint8_t m = (state.task_mode % 2) + 1; //Only Manual and Auto (no MDI)
+    uint8_t m = (state.task_mode % 3) + 1; //or (1+x)%3 from 0
+    //uint8_t m = (state.task_mode % 2) + 1; //Only Manual and Auto (no MDI)
     messenger.sendTaskMode(m);
   }
 }

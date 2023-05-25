@@ -76,8 +76,9 @@ void ManualmaticDisplay::update(bool forceRefresh /*= false*/) {
       case SCREEN_AUTO:
         drawScreenAuto(forceRefresh);
         break;
-      //      case SCREEN_MDI:
-      //      break;
+      case SCREEN_MDI:
+        drawScreenMdi(forceRefresh);
+        break;
       case SCREEN_OFFSET_KEYPAD:
         okp.draw();
         break;
@@ -206,6 +207,15 @@ void ManualmaticDisplay::drawScreenManual(bool forceRefresh /*= false*/) {
 }
 
 void ManualmaticDisplay::drawScreenAuto(bool forceRefresh /*= false*/) {
+  drawLines(forceRefresh);
+  drawAxes(forceRefresh);
+  drawModeLabel(forceRefresh);
+  drawAutoEncoderRow(forceRefresh);
+  drawButtonRow(forceRefresh);
+//  drawDebug();
+}
+
+void ManualmaticDisplay::drawScreenMdi(bool forceRefresh /*= false*/) {
   drawLines(forceRefresh);
   drawAxes(forceRefresh);
   drawModeLabel(forceRefresh);
@@ -405,18 +415,24 @@ void ManualmaticDisplay::drawAutoEncoderRow(bool forceRefresh /*= false*/) {
 
 void ManualmaticDisplay::drawSpindle(bool forceRefresh /*= false*/ ) {
   uint8_t a = 0;
-  if ( forceRefresh ) {
+    if ( forceRefresh ) {
     drawEncoderLabel(a, "Spindle");
   }
-  if ( !state.isAuto() && state.spindleSpeed == 0 ) {
-    drawSpindleRpm(forceRefresh);
+  bool refresh = forceRefresh || drawn.spindleDirection != state.spindleDirection;
+  if ( state.isManual() ) {
+    drawSpindleSpeed(refresh); //Either large or samll
     drawn.spindleOverride = NAN; //will force refresh when spindle started
-    drawn.spindleSpeed = NAN; //will force refresh when spindle started
+    if ( state.spindleDirection == 0 ) {
+      drawn.spindleRpm = NAN; //will force refresh when spindle started
+    } else {
+      drawSpindleRpm(refresh);
+    }
   } else {
-    drawn.spindleRpm = NAN; //will force refresh when spindle stopped
-    drawSpindleOverride(forceRefresh);
-    drawSpindleSpeed(forceRefresh);
+    drawn.spindleSpeed = NAN; //will force refresh when spindle stopped
+    drawSpindleOverride(refresh);
+    drawSpindleRpm(refresh);
   }
+  drawn.spindleDirection = state.spindleDirection;
 }
 
 
@@ -435,13 +451,18 @@ void ManualmaticDisplay::drawEncoderLabel(uint8_t pos, const char *label, int bg
   gfx.setTextColor(WHITE);
 }
 
-void ManualmaticDisplay::drawSpindleRpm(bool forceRefresh /*= false*/ ) {
-  if ( forceRefresh || drawn.spindleRpm != state.spindleRpm * state.spindleOverride ) {
+void ManualmaticDisplay::drawSpindleSpeed(bool forceRefresh /*= false*/ ) {
+  //Here spindle speed is treated as spindle rpm for display purposes
+  if ( forceRefresh || drawn.spindleSpeed != state.spindleSpeed * state.spindleOverride ) {
     uint8_t a = 0;
     char buffer[10];
-    dtostrf((state.spindleRpm * state.spindleOverride), -6, 0, buffer);
-    drawEncoderValue(a, 0, buffer);
-    drawn.spindleRpm = state.spindleRpm * state.spindleOverride;
+    dtostrf((state.spindleSpeed * state.spindleOverride), -6, 0, buffer);
+    if ( state.spindleDirection == 0 ) {
+      drawEncoderValue(a, 0, buffer); //spindle not running so draw big
+    } else {
+      drawEncoderValue(a, 1, buffer); //spindle is running so draw small
+    }
+    drawn.spindleSpeed = state.spindleSpeed * state.spindleOverride;
   }
 }
 
@@ -498,13 +519,13 @@ void ManualmaticDisplay::drawSpindleOverride(bool forceRefresh /*= false*/ ) {
 /** ***************************************************************
    Actual spindle speed
 */
-void ManualmaticDisplay::drawSpindleSpeed(bool forceRefresh /*= false*/ ) {
-  if ( forceRefresh || drawn.spindleSpeed != (state.spindleSpeed * state.spindleOverride) ) {
+void ManualmaticDisplay::drawSpindleRpm(bool forceRefresh /*= false*/ ) {
+  if ( forceRefresh || drawn.spindleRpm != (state.spindleRpm * state.spindleOverride) ) {
     uint8_t a = 0;
     char buffer[10];
-    dtostrf((state.spindleSpeed * state.spindleOverride), -6, 0, buffer);
-    drawEncoderValue(a, 2, buffer);
-    drawn.spindleSpeed = (state.spindleSpeed * state.spindleOverride);
+    dtostrf((state.spindleRpm * state.spindleOverride), -6, 0, buffer);
+    drawEncoderValue(a, 2, buffer, 0, LIGHTGREY);
+    drawn.spindleRpm = (state.spindleRpm * state.spindleOverride);
   }
 }
 
@@ -584,7 +605,7 @@ void ManualmaticDisplay::drawRapidVelocity(bool forceRefresh /*= false*/ ) {
     uint8_t a = 1;
     char buffer[10];
     dtostrf(state.rapid_vel, -6, 0, buffer);
-    drawEncoderValue(a, 2, buffer);
+    drawEncoderValue(a, 2, buffer, 0, LIGHTGREY);
     drawn.rapid_vel = state.rapid_vel;
   }
 }
@@ -609,7 +630,7 @@ void ManualmaticDisplay::drawFeedVelocity(bool forceRefresh /*= false*/ ) {
     uint8_t a = 2;
     char buffer[10];
     dtostrf(state.feed_vel, -6, 0, buffer);
-    drawEncoderValue(a, 2, buffer);
+    drawEncoderValue(a, 2, buffer, 0, LIGHTGREY);
     drawn.feed_vel = state.feed_vel;
   }
 }

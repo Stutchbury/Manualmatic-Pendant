@@ -31,10 +31,11 @@ def fmtround5(value):
 class Commands:
   # Valid values for cmd[0]
   CMD_ABSOLUTE_POS = 'A' #Absolute position
-  CMD_SPINDLE_SPEED = 'S' #Spindle speed set on machine
-  CMD_SPINDLE_OVERRIDE = 's' #Spindle override IN/OUT
+  CMD_SPINDLE_SPEED = 'S' #Commanded spindle speed (not RPM unless override is 100%) IN/OUT 
+  CMD_SPINDLE_OVERRIDE = 's' #Spindle override - combined with speed results in RPM IN/OUT
+  CMD_SPINDLE_RPM = 'R' #Actual RPM of spindle as a result of SPINDLE_SPEED * OVERRIDE OUT
+  CMD_SPINDLE_DIRECTION = 'G' #Spindle direction OUT
   CMD_FEED_OVERRIDE = 'f' #Feed override IN/OUT
-  CMD_RAPID_SPEED = 'R' #Rapid speed @TODO not used?
   CMD_RAPID_OVERRIDE = 'r' #Rapid override IN/OUT
   CMD_JOG = 'J' #Jog
   CMD_JOG_VELOCITY = 'j' #Jog Velocity IN/OUT (sorta)
@@ -53,8 +54,8 @@ class Commands:
   CMD_FLOOD = 'C' #Coolant
   CMD_MIST = 'c' #Little Coolant
   CMD_EXEC_STATE = 'e'
-  CMD_PROGRAM_STATE = 'p'
-  CMD_AUTO = 'a'
+  CMD_PROGRAM_STATE = 'p' #OUT: Running, paused, stepping
+  CMD_AUTO = 'a' #IN: RUN, PAUSE, RESUME, STEP progam
 
   # Valid values for cmd[1] when cmd[0] is CMD_INI_VALUE
   INI_AXES = 'a' #Number of axes 
@@ -62,10 +63,12 @@ class Commands:
   INI_MIN_SPINDLE_OVERRIDE = 's'
   INI_MAX_SPINDLE_OVERRIDE = 'S'
   INI_DEFAULT_SPINDLE_SPEED = 'r' #r for RPM
+  INI_MAX_SPINDLE_SPEED = 'R' #R for RPM
   INI_LINEAR_UNITS = 'U'
   INI_ANGULAR_UNITS = 'u'
   INI_DEFAULT_LINEAR_VELOCITY = 'v'
   INI_MAX_LINEAR_VELOCITY = 'V'
+  INI_NO_FORCE_HOMING = 'h'
   INI_COMPLETE = '.'
 
 class SerialInterface:
@@ -139,7 +142,7 @@ class SerialInterface:
       if port is None:
         port = self.detectTeensy()
         if not port:
-          print("Manualmatic: no Teensyduino devices found")
+          print("Manualmatic: no Teensy devices found")
           return
       self.connection = serial.Serial(port, self.speed, timeout=self.read_timeout)
     except serial.SerialException as e:
@@ -285,6 +288,7 @@ class Manualmatic(Commands):
   HEARTBEAT_MAX=10
 
   linuxcnc = None
+  hal = None #hal
   mmc = None #Component
   ls = None #linuxcnc stat
   lc = None # command
@@ -327,7 +331,9 @@ class Manualmatic(Commands):
   max_feed_override = 1.5
   min_spindle_override = 0.5
   max_spindle_override = 1.5
-  default_spindle_speed = 450
+  default_spindle_speed = 1000
+  max_spindle_speed = 3000.0
+  spindle_speed_cmd = None
 
   linear_units = 'mm'
   angular_units = 'degree'
@@ -336,11 +342,14 @@ class Manualmatic(Commands):
   max_linear_velocity = 42 #iJ (jog max)
   #default_linear_acceleration = 2.0 #default value in ini docs
   #max_linear_acceleration = 20.0
+
+  no_force_homing = 0
   
-  def __init__(self, _linuxcnc, _mmc, _serial_intf):
+  def __init__(self, _linuxcnc, _hal, _mmc, _serial_intf):
     self.linuxcnc = _linuxcnc
     self.ls = self.linuxcnc.stat()
     self.lc = self.linuxcnc.command()
+    self.hal = _hal
     self.mmc = _mmc
     self.serial_intf = _serial_intf
     self.serial_intf.setOwner(self)
@@ -378,11 +387,15 @@ class Manualmatic(Commands):
       self.max_feed_override = self.inifile.find('DISPLAY', 'MAX_FEED_OVERRIDE') or 1.5
       self.min_spindle_override = self.inifile.find('DISPLAY', 'MIN_SPINDLE_OVERRIDE') or 0.5
       self.max_spindle_override = self.inifile.find('DISPLAY', 'MAX_SPINDLE_OVERRIDE') or 1.5
-      self.default_spindle_speed = self.inifile.find('DISPLAY', 'DEFAULT_SPINDLE_SPEED') or 450
+      self.default_spindle_speed = self.inifile.find('DISPLAY', 'DEFAULT_SPINDLE_SPEED') or 1000
+      self.max_spindle_speed = float(self.inifile.find('SPINDLE_0', 'MAX_VELOCITY'))*60 or 0
+      if ( self.max_spindle_speed == 0 ):
+        self.max_spindle_speed = self.inifile.find('DISPLAY', 'MAX_SPINDLE_SPEED') or 3000
       self.linear_units = self.inifile.find('TRAJ', 'LINEAR_UNITS') or 'mm'
       self.angular_units = self.inifile.find('TRAJ', 'ANGULAR_UNITS') or 'degree'
       self.default_linear_velocity = self.inifile.find('TRAJ', 'DEFAULT_LINEAR_VELOCITY') or 80
       self.max_linear_velocity = self.inifile.find('TRAJ', 'MAX_LINEAR_VELOCITY') or 120
+      self.no_force_homing = self.inifile.find('TRAJ', 'NO_FORCE_HOMING') or 0
       
       
 
@@ -397,10 +410,12 @@ class Manualmatic(Commands):
     self.writeIniValueToSerial(self.INI_MIN_SPINDLE_OVERRIDE, self.min_spindle_override)
     self.writeIniValueToSerial(self.INI_MAX_SPINDLE_OVERRIDE, self.max_spindle_override)
     self.writeIniValueToSerial(self.INI_DEFAULT_SPINDLE_SPEED, self.default_spindle_speed) #'r' for 'RPM'
+    self.writeIniValueToSerial(self.INI_MAX_SPINDLE_SPEED, self.max_spindle_speed) #'R' for 'RPM'
     self.writeIniValueToSerial(self.INI_LINEAR_UNITS, self.linear_units)
     self.writeIniValueToSerial(self.INI_ANGULAR_UNITS, self.angular_units)
     self.writeIniValueToSerial(self.INI_DEFAULT_LINEAR_VELOCITY, self.default_linear_velocity)
     self.writeIniValueToSerial(self.INI_MAX_LINEAR_VELOCITY, self.max_linear_velocity)
+    self.writeIniValueToSerial(self.INI_NO_FORCE_HOMING, self.no_force_homing)
     self.writeToSerial(self.CMD_INI_VALUE+self.INI_COMPLETE)
 
   # #########################################################
@@ -475,7 +490,7 @@ class Manualmatic(Commands):
     #print(payload)
     #Pad cmd if required
     if len(cmd) == 1:
-      cmd = cmd + ' ';
+      cmd = cmd + ' '
     if not self.serial_intf.writeCommand(cmd, payload):
       self.serial_intf.disconnect()
       return False
@@ -508,7 +523,8 @@ class Manualmatic(Commands):
       self.absolute_pos_values,
       MachineStateArray(Commands.CMD_DTG, self.axes_list, lambda i: self.ls.dtg[i], formatter=fmtround5),
       MachineStateValue(Commands.CMD_SPINDLE_OVERRIDE, lambda: self.ls.spindle[0]["override"]),
-      MachineStateValue(Commands.CMD_SPINDLE_SPEED, lambda: self.ls.spindle[0]["speed"]),
+      MachineStateValue(Commands.CMD_SPINDLE_RPM, lambda: self.ls.spindle[0]["speed"]),
+      MachineStateValue(Commands.CMD_SPINDLE_DIRECTION, lambda: self.ls.spindle[0]["direction"]),
       MachineStateValue(Commands.CMD_FEED_OVERRIDE, lambda: self.ls.feedrate),
       MachineStateValue(Commands.CMD_RAPID_OVERRIDE, lambda: self.ls.rapidrate),
       MachineStateCommand(Commands.CMD_TASK_MODE, lambda: self.ls.task_mode),
@@ -527,11 +543,20 @@ class Manualmatic(Commands):
   # state with sent state and write changes to the serial port
   # #TODO Investigate https://www.linuxcnc.org/docs/html/gui/GStat.html
   def poll(self):
+    # Check spindle speed cmd pin
+    # Pin value is changed when spindle is started by either Manualmatic or GUI
+    # This is not available via the Python Interface
+    speed_cmd = self.hal.get_value("spindle.0.speed-cmd-rps") * 60
+    if ( speed_cmd != self.spindle_speed_cmd ):
+      #print("Manualmatic: Spindle Speed Cmd: " + str(speed_cmd) )
+      if ( speed_cmd != 0 ):
+        self.writeToSerial(self.CMD_SPINDLE_SPEED, format(speed_cmd))
+      self.spindle_speed_cmd = speed_cmd
     # update linuxcnc state
     self.ls.poll()
     # Compare and send
     if (self.task_state != self.ls.task_state):
-      print("Manualmatic: task state changed", self.ls.task_state)
+      #print("Manualmatic: task state changed", self.ls.task_state)
       # linuxcnc.STATE_ESTOP: 1, STATE_ESTOP_RESET: 2, STATE_ON: 4
       # STATE_OFF: 3? Appears to not be used
       self.resetState()
@@ -553,7 +578,7 @@ class Manualmatic(Commands):
       # @TODO Do we use this instead of spindle[0]["speed"]?
       # Actual vs set?
       #if ( self.spindle_speed != self.ls.settings[2] ):
-      #  self.writeToSerial(self.CMD_SPINDLE_SPEED, format(self.ls.settings[2]))
+      #  self.writeToSerial(self.CMD_SPINDLE_RPM, format(self.ls.settings[2]))
       #  self.spindle_speed != self.ls.settings[2]
 
       # max_velocity ######################
@@ -597,8 +622,8 @@ class Manualmatic(Commands):
             print('Manualmatic: program_state: PROGRAM_STATE_PAUSED')
         elif ( self.program_state == self.PROGRAM_STATE_STOPPED ):
             print('Manualmatic: program_state: PROGRAM_STATE_STOPPED')
-            
-            
+
+
   # #########################################################
   # Called if a valid message is received
   def processCmd(self, cmd, payload):
@@ -619,7 +644,7 @@ class Manualmatic(Commands):
 
     # Jog
     elif ( cmd[0] == self.CMD_JOG_STOP and self.ls.axis_mask & (1<<int(cmd[1])) ):
-      print("Manualmatic: Jog Stop: " + self.axesMap[int(cmd[1])])
+      #print("Manualmatic: Jog Stop: " + self.axesMap[int(cmd[1])])
       if (self.ls.motion_mode != self.linuxcnc.TRAJ_MODE_TELEOP):
         self.lc.teleop_enable(True)
         self.lc.wait_complete()
@@ -683,24 +708,24 @@ class Manualmatic(Commands):
     elif ( cmd[0] == self.CMD_SPINDLE_SPEED ):
       #@TODO check current task_mode
       #@TODO Check if we need override_enabled for manual control of spindle
-      if ( self.ls.spindle[0]["override_enabled"] == 0):
-        self.lc.set_spindle_override(1, 1)
-        self.lc.wait_complete()
+      #if ( self.ls.spindle[0]["override_enabled"] == 0):
+      #self.lc.set_spindle_override(1, 0)
+      #self.lc.wait_complete()
       rpm = float(payload)
-      print("Manualmatic: rpm: ", rpm)
+      #print("Manualmatic: rpm: ", rpm)
       if ( rpm > 0 ):
-        print("Manualmatic: forward")
-        if ( self.ls.spindle[0]["speed"] == 0 ):
-          #Hit it twice or it'll start at 450!!!
-          self.lc.spindle(self.linuxcnc.SPINDLE_FORWARD, rpm, 0)
-          time.sleep(0.1)
-        self.lc.spindle(self.linuxcnc.SPINDLE_FORWARD, rpm, 0)
+        #print("Manualmatic: forward")
+        if ( self.ls.spindle[0]["direction"] == 0 ):
+          #Hit it twice or it'll start at gmoccapy default!!!
+          self.lc.spindle(self.linuxcnc.SPINDLE_FORWARD, float(rpm), 0)
+          time.sleep(0.12)
+        self.lc.spindle(self.linuxcnc.SPINDLE_FORWARD, float(rpm), 0)
       elif ( rpm < 0 ):
-        print("Manualmatic: reverse")
-        if ( self.ls.spindle[0]["speed"] == 0 ):
-          #Hit it twice or it'll start at 450!!!
+        #print("Manualmatic: reverse")
+        if ( self.ls.spindle[0]["direction"] == 0 ):
+          #Hit it twice or it'll start at gmoccapy default!!!
           self.lc.spindle(self.linuxcnc.SPINDLE_REVERSE, abs(rpm), 0)
-          time.sleep(0.1)
+          time.sleep(0.12)
         self.lc.spindle(self.linuxcnc.SPINDLE_REVERSE, abs(rpm), 0)
       else:
         self.lc.spindle(self.linuxcnc.SPINDLE_OFF, 0)
@@ -712,6 +737,7 @@ class Manualmatic(Commands):
         self.lc.set_spindle_override(1, 0)
         self.lc.wait_complete()
       incr = float(payload)
+      #print("Manualmatic: set spindle override: " + str(incr) )
       self.lc.spindleoverride(incr, 0)
 
     # Feed override
@@ -843,4 +869,3 @@ class Manualmatic(Commands):
 
 # end of Manualmatic class definition
 # ##########################################################################################
-

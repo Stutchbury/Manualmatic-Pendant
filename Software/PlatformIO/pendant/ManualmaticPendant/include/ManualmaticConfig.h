@@ -36,7 +36,8 @@ class ManualmaticConfig {
     float max_rapid_override = 1.2; //@TODO set in ini?
     float min_spindle_override = 0.5;
     float max_spindle_override = 1.5;
-    float default_spindle_speed = 450;
+    float default_spindle_speed = 1000;
+    float max_spindle_speed = 3000;
     // In machine units per second - converted in setIniValue() to machine units per minute
     float default_linear_velocity = 1;
     float max_linear_velocity = 5;
@@ -59,6 +60,10 @@ class ManualmaticConfig {
     Axis_e joystickAxisAlt[2] = {AXIS_A, AXIS_Z};
 
     uint16_t errorMessageTimeout = 2000;
+    
+    // It would be so much easier to use 'forceHoming' but this is the LinuxCNC convention
+    // [TRAJ] NO_FORCE_HOMING defaults to 0 if not specified in ini file.
+    bool noForceHoming = false;
   
 };
 

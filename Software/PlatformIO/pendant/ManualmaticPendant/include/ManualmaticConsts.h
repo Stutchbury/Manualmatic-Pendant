@@ -122,10 +122,11 @@ enum Operation_e : uint8_t {
  */
 enum Cmd_e : uint8_t {
   CMD_ABSOLUTE_POS = 'A', // Absolute position
-  CMD_SPINDLE_SPEED = 'S', //Spindle speed set on machine
-  CMD_SPINDLE_OVERRIDE = 's', //Spindle override IN/OUT
+  CMD_SPINDLE_SPEED = 'S', //Commanded spindle speed (not RPM unless override is 100%) IN/OUT
+  CMD_SPINDLE_OVERRIDE = 's', //Spindle override - combined with speed results in RPM IN/OUT
+  CMD_SPINDLE_RPM = 'R', //Actual RPM of spindle as a result of SPINDLE_SPEED * OVERRIDE IN
+  CMD_SPINDLE_DIRECTION = 'G', //Spindle direction IN
   CMD_FEED_OVERRIDE = 'f', //Feed override IN/OUT
-  CMD_RAPID_SPEED = 'R', //Rapid speed @TODO not used?
   CMD_RAPID_OVERRIDE = 'r', //Rapid override IN/OUT
   CMD_JOG = 'J', //Jog
   CMD_JOG_VELOCITY = 'j', //Jog Velocity IN/OUT (sorta)
@@ -157,10 +158,12 @@ enum Cmd_ini_e : uint8_t {
   INI_MIN_SPINDLE_OVERRIDE = 's',
   INI_MAX_SPINDLE_OVERRIDE = 'S',
   INI_DEFAULT_SPINDLE_SPEED = 'r', //#r for RPM
+  INI_MAX_SPINDLE_SPEED = 'R', //#R for RPM
   INI_LINEAR_UNITS = 'U',
   INI_ANGULAR_UNITS = 'u',
   INI_DEFAULT_LINEAR_VELOCITY = 'v',
   INI_MAX_LINEAR_VELOCITY = 'V',
+  INI_NO_FORCE_HOMING = 'h',
   INI_COMPLETE = '.'
 };
 

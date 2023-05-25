@@ -91,9 +91,9 @@ class ManualmaticState {
     uint8_t displayedCoordSystem = 2;
     uint8_t prevCoordSystem = 0;
     float spindleOverride = 1;
-    float spindleRpm = 400; // @TODO set from config default Spindle rpm set on the pendant
-    float spindleSpeed = 0; // Set speed of the spindle on the machine
-    int8_t currentSpindleDir = 0;
+    float spindleSpeed = 0; // Commanded spindle speed
+    float spindleRpm = 0; // Actual spindle rpm
+    int8_t spindleDirection = 0; //Indicates whether spindle is on or off 1=fwd, -1=rev, 0=stopped
     float feedrate = 1;
     float rapidrate = 1;
     float rapidSpeed = 0;
@@ -202,11 +202,10 @@ class ManualmaticState {
 
 
     /**
-     * Set the spindle RPM on the pendant (manual mode)
-     * Ensure we cannot accidentally reverse direction @TODO use actual 
-     * spindle speed instead of spindle dir for this?
+     * Set the commanded spindle speed on the pendant (manual mode)
+     * Ensure we cannot accidentally reverse direction.
      */
-    void setSpindleRpm(int16_t incr);
+    void setSpindleSpeed(int16_t incr);
 
     void setErrorMessage(ErrorMessage_e error);
 

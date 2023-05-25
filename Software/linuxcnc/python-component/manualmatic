@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 ##
 # Manualmatic Pendant component for LinuxCNC.
 #
@@ -24,7 +24,7 @@ c = hal.component("manualmatic")
 
 c.newpin("estop-is-activated", hal.HAL_BIT, hal.HAL_OUT)
 
-mm = Manualmatic(linuxcnc, c, SerialInterface())
+mm = Manualmatic(linuxcnc, hal, c, SerialInterface())
 
 try:
   c.ready()
