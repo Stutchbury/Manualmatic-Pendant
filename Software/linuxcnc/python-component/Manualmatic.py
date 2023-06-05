@@ -56,6 +56,7 @@ class Commands:
   CMD_EXEC_STATE = 'e'
   CMD_PROGRAM_STATE = 'p' #OUT: Running, paused, stepping
   CMD_AUTO = 'a' #IN: RUN, PAUSE, RESUME, STEP progam
+  CMD_HEARTBEAT = 'b' #Heartbeat
 
   # Valid values for cmd[1] when cmd[0] is CMD_INI_VALUE
   INI_AXES = 'a' #Number of axes 
@@ -136,13 +137,15 @@ class SerialInterface:
       return
     self.last_connect_attempt = time.time()
     self.retry += 1
-    print("Manualmatic: attempt %d" % (self.retry, ))
+    if ( self.retry < 5 or self.retry%5 == 0 ):
+      print("Manualmatic: Connection attempt %d" % (self.retry, ))
     try:
       port = self.port
       if port is None:
         port = self.detectTeensy()
         if not port:
-          print("Manualmatic: no Teensy devices found")
+          if ( self.retry < 5 or self.retry%5 == 0 ):
+            print("Manualmatic: No Manualmatic/Teensy device found")
           return
       self.connection = serial.Serial(port, self.speed, timeout=self.read_timeout)
     except serial.SerialException as e:
@@ -640,9 +643,11 @@ class Manualmatic(Commands):
       print("Manualmatic: Received abort!");
 
     # Heartbeat
-    elif ( cmd[0] == 'b'):
+    elif ( cmd[0] == self.CMD_HEARTBEAT ):
       self.last_heartbeat = time.time()
-      #print("<B...");
+      #print("Manualmatic: <B...");
+      #Bounce it right back
+      self.writeToSerial(self.CMD_HEARTBEAT)
 
     # Jog
     elif ( cmd[0] == self.CMD_JOG_STOP and self.ls.axis_mask & (1<<int(cmd[1])) ):
@@ -664,7 +669,7 @@ class Manualmatic(Commands):
         None
 
     elif ( cmd[0] == self.CMD_JOG_CONTINUOUS and self.ls.axis_mask & (1<<int(cmd[1])) ):
-      print("Manualmatic: Jog Continuous: " + self.axesMap[int(cmd[1])])
+      #print("Manualmatic: Jog Continuous: " + self.axesMap[int(cmd[1])])
       if (self.ls.motion_mode != self.linuxcnc.TRAJ_MODE_TELEOP):
         self.lc.teleop_enable(True)
         self.lc.wait_complete()
@@ -802,8 +807,6 @@ class Manualmatic(Commands):
 
 
 
-
-
     # Debug
     elif ( cmd == 'DD' ):
       print('Manualmatic: Debug: ' + payload )
@@ -818,12 +821,16 @@ class Manualmatic(Commands):
   # Called on successful opening of the serial port
   def onConnected(self):
     self.last_heartbeat = 0
+    #Start the heartbeat
+    self.writeToSerial(self.CMD_HEARTBEAT)
     self.resetState()
 
   # #########################################################
   # Called on when the serial port has been disconnected
   def onDisconnected(self):
-    if self.ls.motion_mode == self.linuxcnc.TRAJ_MODE_TELEOP:
+    # @TODO Do not send jog stop if machine is off
+    if ( self.ls.task_state == self.linuxcnc.STATE_ON and self.ls.motion_mode == self.linuxcnc.TRAJ_MODE_TELEOP ):
+      #print("Manualmatic: stop jog on disconnect")
       for axis in self.axes_list:
         self.lc.jog(self.linuxcnc.JOG_STOP, False, axis)
 

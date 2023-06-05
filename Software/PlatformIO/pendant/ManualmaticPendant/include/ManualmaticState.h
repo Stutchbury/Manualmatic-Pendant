@@ -69,7 +69,12 @@ class ManualmaticState {
     //   ButtonRow_e buttonRow = BUTTON_ROW_NONE;
     // };
     
-    
+    // Hold a consistent 'time' for each loop
+    uint32_t now = millis();
+    uint32_t lastHeartbeatSent = 0; //0 denotes no heartbeat
+    uint32_t lastHeartbeatReceived = 0; //0 denotes no heartbeat
+    bool pulse = false; //Toggled by send hearbeat
+
     uint8_t estop_is_activated = digitalRead(SOFT_ESTOP);
     Task_state_e task_state = STATE_INIT;
     Task_mode_e task_mode = MODE_UNKNOWN;
@@ -107,7 +112,7 @@ class ManualmaticState {
     float jogVelocity[2] = { 180, 3000 }; //Sent to serial (as mm/min) but does not update gmoccapy
     JogRange_e jogVelocityRange = JOG_RANGE_HIGH;
     //
-    uint8_t iniState = 0;
+    Ini_state_e iniState = INI_STATE_DISCONNECTED;
     //
     bool refreshDisplay = false;
     Screen_e screen = SCREEN_INIT;
@@ -208,6 +213,9 @@ class ManualmaticState {
     void setSpindleSpeed(int16_t incr);
 
     void setErrorMessage(ErrorMessage_e error);
+
+    void onConnected();
+    void onDisconnected();
 
   private:
     ManualmaticConfig& config;

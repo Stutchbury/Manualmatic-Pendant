@@ -52,9 +52,8 @@ void ManualmaticDisplay::update(bool forceRefresh /*= false*/) {
  * The main display function called once per loop - decides what
  * to display based on actual state vs drawn state.
  */
-  now = millis();
-  if ( now > lastDisplayRefresh + displayRefreshMs ) {
-    lastDisplayRefresh = now;
+  if ( state.now > lastDisplayRefresh + displayRefreshMs ) {
+    lastDisplayRefresh = state.now;
     
     if ( drawn.task_state != state.task_state ) {
       forceRefresh = true;
@@ -94,6 +93,7 @@ void ManualmaticDisplay::update(bool forceRefresh /*= false*/) {
       default: //SCREEN_INIT
         drawScreenSplash(forceRefresh);
     }
+    drawPulse();
     state.refreshDisplay = false;
   }
   
@@ -754,4 +754,12 @@ void ManualmaticDisplay::drawButtonLine(uint8_t col) {
         WHITE);
   }
   gfx.drawFastHLine(areas.buttonLabels[0].x(), areas.buttonLabels[0].y(), displayWidth, WHITE);
+}
+
+void ManualmaticDisplay::drawPulse() {
+  if ( config.showPulse && drawn.pulseDrawn != state.pulse) {
+    Coords_s cp = { 311, 232 };
+    icons.drawPulse(cp, 2, state.pulse ? RED : BLACK);
+    drawn.pulseDrawn = state.pulse;
+  }
 }

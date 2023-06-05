@@ -18,7 +18,7 @@ ManualmaticMessenger::ManualmaticMessenger(ManualmaticMessage& message, Manualma
   {}
 
 void ManualmaticMessenger::ManualmaticMessenger::sendHeartbeat() {
-  serialMessage.send('b');
+  serialMessage.send(CMD_HEARTBEAT);
 }
 
 /** *************************************************************

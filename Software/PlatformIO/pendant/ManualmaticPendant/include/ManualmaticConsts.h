@@ -117,6 +117,14 @@ enum Operation_e : uint8_t {
 
 
 /**
+ * @brief Initialisation state of the pendant
+ */
+enum Ini_state_e : uint8_t {
+  INI_STATE_DISCONNECTED, INI_STATE_CONNECTED, INI_STATE_RECEIVED, INI_STATE_SENT
+};
+
+
+/**
  * @brief Valid values for cmd[0]
  * Do not use enum class
  */
@@ -146,7 +154,8 @@ enum Cmd_e : uint8_t {
   CMD_MIST = 'c', //Little Coolant IN/OUT
   CMD_EXEC_STATE = 'e', 
   CMD_PROGRAM_STATE = 'p',
-  CMD_AUTO = 'a'
+  CMD_AUTO = 'a',
+  CMD_HEARTBEAT = 'b' //Heartbeat
 };
 
 /**
@@ -213,10 +222,10 @@ enum ButtonState_e : uint8_t {
 };
 
 /**
- * @brief Duration of a long click in milliseconds
+ * @brief Pulse of heartbeat in milliseconds
  * 
  */
-const unsigned int heartbeatMs = 500;
+const unsigned int heartbeatMs = 1000;
 
 /**
  * @brief Duration of a long click in milliseconds

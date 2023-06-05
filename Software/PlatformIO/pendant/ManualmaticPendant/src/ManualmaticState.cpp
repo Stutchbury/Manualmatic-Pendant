@@ -101,6 +101,12 @@ void ManualmaticState::update(char cmd[2], char payload[30]) {
       case CMD_MIST:
         mist = static_cast<Mist_e>(cmd[1]-'0');
         break;
+      case CMD_HEARTBEAT:
+        lastHeartbeatReceived = now;
+        if ( iniState == INI_STATE_DISCONNECTED ) {
+          onConnected();
+        }
+        break;
     }
   }
 
@@ -235,7 +241,7 @@ void ManualmaticState::setSpindleSpeed(int16_t incr) {
 
 void ManualmaticState::setErrorMessage(ErrorMessage_e error) {
   errorMessage = error;
-  errorMessageStartTime = millis();
+  errorMessageStartTime = now;
 }
 
 void ManualmaticState::setIniValue(char cmd1, char* payload) {
@@ -283,7 +289,7 @@ void ManualmaticState::setIniValue(char cmd1, char* payload) {
       config.noForceHoming = (atoi(payload) == 1);
       break;
     case INI_COMPLETE:
-      iniState = 1;
+      iniState = INI_STATE_RECEIVED;
       break;
     //default:  
   }
@@ -307,4 +313,15 @@ bool ManualmaticState::isReady(bool setMessage /*= true*/)  {
     return false;
   }
   return true;
+}
+
+void ManualmaticState::onConnected() {
+  iniState = INI_STATE_CONNECTED;
+}
+
+void ManualmaticState::onDisconnected() {
+  iniState = INI_STATE_DISCONNECTED;
+  lastHeartbeatReceived = 0;
+  lastHeartbeatSent = 0;
+  setScreen(SCREEN_SPLASH);
 }

@@ -62,6 +62,11 @@ class ManualmaticIcons {
     void drawIconStop(Coords_s cp, int c=WHITE, uint8_t h=24);
 
     void drawJoystickMarker(Coords_s cp);
+
+    void drawPulse(Coords_s cp, uint8_t r = 3, int c=WHITE);
+
+
+
   /** ***************************************************************
 
   */

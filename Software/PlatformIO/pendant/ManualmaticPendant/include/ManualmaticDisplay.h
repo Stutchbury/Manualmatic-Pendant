@@ -53,7 +53,6 @@ class ManualmaticDisplay {
     ManualmaticOffsetKeypad& okp;
     ManualmaticIcons icons;
 
-    unsigned long now = millis();
     unsigned long lastDisplayRefresh = 0;
     bool forceRefresh = false;
 
@@ -80,7 +79,7 @@ class ManualmaticDisplay {
       uint8_t displayedAxes = 4;
       uint8_t displayedCoordSystem = 2;
       float spindleOverride = 1;
-      float spindleSpeed = 400; // Commanded spindle speed (multiplied by override to give rpm)
+      float spindleSpeed = 0; // Commanded spindle speed (multiplied by override to give rpm)
       float spindleRpm = 0; // Actual spindale speed
       int8_t spindleDirection = 0; //Indicates whether spindle is on or off 1=fwd, -1=rev, 0=stopped
       float rapidrate = 1;
@@ -89,6 +88,7 @@ class ManualmaticDisplay {
       float feed_vel = 0; //locally calculated for display based on current_vel & motion_type
       float feedrate = 1;
       float jogVelocity[2] = { 180, 3000 }; //Sent to serial (as mm/min) but does not update gmoccapy
+      bool pulseDrawn = false;
       JogRange_e jogVelocityRange = JOG_RANGE_HIGH;
       uint8_t currentJogIncrement = 3;
       ButtonRow_e buttonRow = BUTTON_ROW_NONE;
@@ -184,6 +184,9 @@ class ManualmaticDisplay {
     void drawButtonRowError(char const* label );
     void drawStopButton();
     
+    void drawPulse();
+
+
     struct DisplayAreas_s {
       DisplayArea axes;
       DisplayArea axesMarkers;

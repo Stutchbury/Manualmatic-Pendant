@@ -60,6 +60,8 @@ class ManualmaticConfig {
     Axis_e joystickAxisAlt[2] = {AXIS_A, AXIS_Z};
 
     uint16_t errorMessageTimeout = 2000;
+    // Display an indicator of the heartbeat
+    bool showPulse = true;
     
     // It would be so much easier to use 'forceHoming' but this is the LinuxCNC convention
     // [TRAJ] NO_FORCE_HOMING defaults to 0 if not specified in ini file.

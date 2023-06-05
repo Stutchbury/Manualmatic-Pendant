@@ -47,7 +47,8 @@ void ManualmaticControl::begin() {
 /** ********************************************************************** */
 void ManualmaticControl::update() {
   checkEstop();
-  if ( state.iniState == 1 ) {
+  state.now = millis();
+  if ( state.iniState == INI_STATE_RECEIVED ) {
     onIniReceived();
   }
   char cmd[2];
@@ -75,12 +76,8 @@ void ManualmaticControl::update() {
   joystick.update();
   buttonJoystick.update();
   buttonModifier.update();
-  now = millis();
-  
-  if ( now > lastHeartbeat + heartbeatMs ) {
-    lastHeartbeat = now;
-    messenger.sendHeartbeat();
-  }
+
+  checkHeartbeat();  
 
 }
 /** ********************************************************************** */
@@ -196,11 +193,22 @@ void ManualmaticControl::checkEstop(bool force /*=false*/) {
   }
 }
 
+void ManualmaticControl::checkHeartbeat() {
+  if ( state.iniState != INI_STATE_DISCONNECTED //heartbeat has been kickstarted
+    && state.now > (state.lastHeartbeatSent + heartbeatMs) ) {
+    messenger.sendHeartbeat();
+    state.lastHeartbeatSent = state.now;
+    state.pulse = !state.pulse;
+  }
+  if ( state.lastHeartbeatReceived != 0 && state.now > state.lastHeartbeatReceived + (heartbeatMs*4) ) {
+    state.onDisconnected();
+  }
+}
+
 void ManualmaticControl::onIniReceived() {
-  //Send pendant state back  
+  //Send back any relevant pendant state  
   checkEstop(true);
-  //messenger.setMachineState(digitalRead(SOFT_ESTOP) == HIGH ? STATE_ESTOP : STATE_ESTOP_RESET); 
-  state.iniState = 2;
+  state.iniState = INI_STATE_SENT;
 }
 
 void ManualmaticControl::onFeedEncoder(EncoderButton& rb) {
@@ -327,7 +335,7 @@ void ManualmaticControl::onButtonRowTouched(TouchKey& key) {
  */
 void ManualmaticControl::updateButtonRow() {
   if ( state.errorMessage != ERRMSG_NONE) {
-    if ( millis() - state.errorMessageStartTime >= config.errorMessageTimeout ) {
+    if ( state.now - state.errorMessageStartTime >= config.errorMessageTimeout ) {
       state.errorMessage = ERRMSG_NONE;
     }
   }
