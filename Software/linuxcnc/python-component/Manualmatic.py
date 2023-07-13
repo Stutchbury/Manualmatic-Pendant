@@ -395,7 +395,7 @@ class Manualmatic(Commands):
       if ( self.max_spindle_speed != 0 ):
         self.max_spindle_speed = float(self.max_spindle_speed) * 60
       else:
-        self.max_spindle_speed = self.inifile.find('DISPLAY', 'MAX_SPINDLE_SPEED') or 3000
+        self.max_spindle_speed = self.inifile.find('DISPLAY', 'MAX_SPINDLE_SPEED') or 24000
       self.linear_units = self.inifile.find('TRAJ', 'LINEAR_UNITS') or 'mm'
       self.angular_units = self.inifile.find('TRAJ', 'ANGULAR_UNITS') or 'degree'
       self.default_linear_velocity = self.inifile.find('TRAJ', 'DEFAULT_LINEAR_VELOCITY') or 80
@@ -768,7 +768,7 @@ class Manualmatic(Commands):
       #@TODO check before attempting to change
       self.lc.mode(int(cmd[1]))
 
-    # Rapid override
+    # G5X offset
     elif ( cmd[0] == self.CMD_G5X_OFFSET and self.ls.axis_mask & (1<<int(cmd[1])) ):
       if ( self.ok_for_mdi() ):
           self.lc.mode(self.linuxcnc.MODE_MDI)
