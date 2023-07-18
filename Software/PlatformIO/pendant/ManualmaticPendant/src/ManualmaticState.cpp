@@ -75,12 +75,22 @@ void ManualmaticState::update(char cmd[2], char payload[30]) {
   //      break;
       case CMD_G5X_OFFSET:
         if ( strchr("012345678", cmd[1]) != NULL ) {
-          g5xOffsets[((int)cmd[1])-48] = atof(payload); //There's probably a better way than -48...  
+          g5xOffsets[((int)cmd[1])-'0'] = atof(payload);
+        } 
+        break;
+      case CMD_G92_OFFSET:
+        if ( strchr("012345678", cmd[1]) != NULL ) {
+          g92Offsets[((int)cmd[1])-'0'] = atof(payload);
+        } 
+        break;
+      case CMD_TOOL_OFFSET:
+        if ( strchr("012345678", cmd[1]) != NULL ) {
+          toolOffsets[((int)cmd[1])-'0'] = atof(payload);
         } 
         break;
       case CMD_DTG:
         if ( strchr("012345678", cmd[1]) != NULL ) {
-          axisDtg[((int)cmd[1])-48] = atof(payload); //There's probably a better way than -48...   
+          axisDtg[((int)cmd[1])-'0'] = atof(payload);
         }
         break;
       case CMD_HOMED:

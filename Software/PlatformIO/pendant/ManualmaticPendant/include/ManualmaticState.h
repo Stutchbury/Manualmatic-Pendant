@@ -86,6 +86,8 @@ class ManualmaticState {
     Flood_e flood = FLOOD_OFF;
     Mist_e mist = MIST_OFF;
     float g5xOffsets[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    float g92Offsets[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    float toolOffsets[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     float axisAbsPos[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     float axisDtg[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     uint8_t homed[8] = {0, 0, 0, 0, 0, 0, 0, 0};

@@ -145,7 +145,10 @@ enum Cmd_e : uint8_t {
   CMD_INTERP_STATE = 'I', //interp_state
   CMD_CURRENT_VEL = 'v', //current_vel
   CMD_MOTION_TYPE = 't', //motion_type
-  CMD_G5X_OFFSET = 'O', //g5x_offset IN/OUT
+  CMD_G5X_INDEX = 'W', //g5x_index (WCS) IN OUT
+  CMD_G5X_OFFSET = '5', //g5x_offset IN
+  CMD_G92_OFFSET = '9', //g92_offset IN
+  CMD_TOOL_OFFSET = 'T', //Tool_offset IN: offset OUT: tool index?
   CMD_DTG = 'D', //DTG
   CMD_ALL_HOMED = 'H', //homed
   CMD_HOMED = 'h', //homed

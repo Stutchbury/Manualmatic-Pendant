@@ -361,7 +361,8 @@ bool ManualmaticDisplay::setDisplayedAxisValue(uint8_t axis) {
   if ( state.displayedCoordSystem == 0 ) {
     state.displayedAxisValues[axis] = state.axisAbsPos[axis];
   } else if ( state.displayedCoordSystem == 2 ) {
-    state.displayedAxisValues[axis] = ( ( (state.axisAbsPos[axis] * -1)  +  state.g5xOffsets[axis] ) * -1); //@TODO Check - this seems too convoluted.
+    //Should this calculation move to state?
+    state.displayedAxisValues[axis] = state.axisAbsPos[axis] - state.g5xOffsets[axis] - state.g92Offsets[axis] - state.toolOffsets[axis]; //@TODO Check - this seems too convoluted.
   } else if ( state.displayedCoordSystem == 1 ) {
     state.displayedAxisValues[axis] = state.axisDtg[axis];
   }

@@ -46,7 +46,10 @@ class Commands:
   CMD_INTERP_STATE = 'I' #interp_state
   CMD_CURRENT_VEL = 'v' #current_vel
   CMD_MOTION_TYPE = 't' #motion_type
-  CMD_G5X_OFFSET = 'O' #g5x_offset IN/OUT
+  CMD_G5X_INDEX = 'W' #g5x_index (WCS) IN OUT
+  CMD_G5X_OFFSET = '5' #g5x_offset OUT: current offset
+  CMD_G92_OFFSET = '9' #g92_offset OUT
+  CMD_TOOL_OFFSET = 'T' #Tool_offset OUT
   CMD_DTG = 'D' #DTG
   CMD_HOMED = 'h' #homed
   CMD_ALL_HOMED = 'H' #all axes homed
@@ -428,6 +431,8 @@ class Manualmatic(Commands):
   def print_axis(self, i):
       print('Manualmatic: g5x_offset ', format(i), ': ', format(self.ls.g5x_offset[i]))
       print('Manualmatic: abs ', format(i), ': ', format(self.ls.actual_position[i]));
+      print('Manualmatic: g92_offset ', format(i), ': ', format(self.ls.g92_offset[i]))
+      print('Manualmatic: tool_offset ', format(i), ': ', format(self.ls.tool_offset[i]))
 
   # #########################################################
   # Used for debug
@@ -506,6 +511,8 @@ class Manualmatic(Commands):
 
   def resend_positions(self):
     self.g5x_values.forceRefresh()
+    self.g92_values.forceRefresh()
+    self.tool_values.forceRefresh()
     self.absolute_pos_values.forceRefresh()
       
   # #########################################################
@@ -522,9 +529,13 @@ class Manualmatic(Commands):
     self.sendIniValues()
     # Store these for later use
     self.g5x_values = MachineStateArray(Commands.CMD_G5X_OFFSET, self.axes_list, lambda i: self.ls.g5x_offset[i], formatter=fmtround5)
+    self.g92_values = MachineStateArray(Commands.CMD_G92_OFFSET, self.axes_list, lambda i: self.ls.g92_offset[i], formatter=fmtround5)
+    self.tool_values = MachineStateArray(Commands.CMD_TOOL_OFFSET, self.axes_list, lambda i: self.ls.tool_offset[i], formatter=fmtround5)
     self.absolute_pos_values = MachineStateArray(Commands.CMD_ABSOLUTE_POS, self.axes_list, lambda i: self.ls.actual_position[i], formatter=fmtround5)
     self.on_state_values = [
       self.g5x_values,
+      self.g92_values,
+      self.tool_values,
       self.absolute_pos_values,
       MachineStateArray(Commands.CMD_DTG, self.axes_list, lambda i: self.ls.dtg[i], formatter=fmtround5),
       MachineStateValue(Commands.CMD_SPINDLE_OVERRIDE, lambda: self.ls.spindle[0]["override"]),
@@ -775,10 +786,13 @@ class Manualmatic(Commands):
           self.lc.wait_complete()
           i = int(cmd[1])
           # have to round offset or we may get an 'e' within format'd string
+          offset = round(float(payload), 5)
           # KF: should that not be the g5x_offset instead?
-          offset = round((self.ls.actual_position[i] - float(payload)), 5)         
-          #@TODO Implement P1-P9 to use other g5x offsets
-          mdi_cmd = 'G10 L2 P1 ' + self.axesMap[i] + format(offset)
+          # PF: Depends on G90 or G91: https://www.cnccookbook.com/g10-g-code-fanuc-cnc-machining-haas/
+          # Using P0 - will set the current work offset.
+          # Using L20 rather than L2 calculates based on G90 or 91
+          # http://linuxcnc.org/docs/html/gcode/g-code.html#gcode:g10-l20
+          mdi_cmd = 'G10 L20 P0 ' + self.axesMap[i] + format(offset)
           self.lc.mdi(mdi_cmd)
           self.lc.wait_complete()
           self.lc.mode(self.linuxcnc.MODE_MANUAL)
