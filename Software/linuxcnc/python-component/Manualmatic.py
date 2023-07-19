@@ -311,7 +311,6 @@ class Manualmatic(Commands):
   interp_state = None
   interpreter_errcode = None
   #actual_position = [None, None, None, None, None, None, None, None]
-  g5x_index = None
   #max_velocity = 0
   #velocity = 0
   motion_type = None # 1, 2, or 3 (so far)
@@ -529,16 +528,17 @@ class Manualmatic(Commands):
         self.axes +=1
     self.sendIniValues()
     # Store these for later use
+    self.g5x_index =  MachineStateCommand(Commands.CMD_G5X_INDEX, lambda: self.ls.g5x_index)
     self.g5x_values = MachineStateArray(Commands.CMD_G5X_OFFSET, self.axes_list, lambda i: self.ls.g5x_offset[i], formatter=fmtround5)
     self.g92_values = MachineStateArray(Commands.CMD_G92_OFFSET, self.axes_list, lambda i: self.ls.g92_offset[i], formatter=fmtround5)
     self.tool_values = MachineStateArray(Commands.CMD_TOOL_OFFSET, self.axes_list, lambda i: self.ls.tool_offset[i], formatter=fmtround5)
     self.absolute_pos_values = MachineStateArray(Commands.CMD_ABSOLUTE_POS, self.axes_list, lambda i: self.ls.actual_position[i], formatter=fmtround5)
     self.on_state_values = [
+      self.g5x_index,
       self.g5x_values,
       self.g92_values,
       self.tool_values,
       self.absolute_pos_values,
-      MachineStateCommand(Commands.CMD_G5X_INDEX, lambda: self.ls.g5x_index),
       MachineStateArray(Commands.CMD_DTG, self.axes_list, lambda i: self.ls.dtg[i], formatter=fmtround5),
       MachineStateValue(Commands.CMD_SPINDLE_OVERRIDE, lambda: self.ls.spindle[0]["override"]),
       MachineStateValue(Commands.CMD_SPINDLE_RPM, lambda: self.ls.spindle[0]["speed"]),
@@ -701,6 +701,7 @@ class Manualmatic(Commands):
       and int(cmd[1]) == self.linuxcnc.STATE_ON):
         print("Manualmatic: turning machine on")
         self.lc.state(self.linuxcnc.STATE_ON)
+        resend_positions()
       elif (self.ls.task_state == self.linuxcnc.STATE_ON
       and int(cmd[1]) == self.linuxcnc.STATE_OFF ):
         print("Manualmatic: turning machine off")
