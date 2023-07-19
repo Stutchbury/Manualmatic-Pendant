@@ -17,7 +17,7 @@ ManualmaticDisplay::ManualmaticDisplay(
     { areas.axes = DisplayArea(0, 0, displayWidth, axesAreaHeight);
       areas.axesMarkers = DisplayArea(0, 0, 19, axesAreaHeight);
       areas.axesLabels = DisplayArea(20, 0, 50, axesAreaHeight);
-      areas.axesCoords = DisplayArea(50, 0, 32, axesAreaHeight);
+      areas.axesCoords = DisplayArea(50, 0, 52, axesAreaHeight);
       areas.encoderLabel[0] = DisplayArea(0, axesAreaHeight, encoderColumnWidth, encoderLabelAreaHeight);
       areas.encoderLabel[1] = DisplayArea(encoderColumnWidth + 1, axesAreaHeight, encoderColumnWidth, encoderLabelAreaHeight);
       areas.encoderLabel[2] = DisplayArea((encoderColumnWidth * 2) + 2, axesAreaHeight, encoderColumnWidth, encoderLabelAreaHeight);
@@ -286,6 +286,10 @@ void ManualmaticDisplay::drawAxes(bool forceRefresh /*= false*/) {
     forceRefresh = true;
     drawn.displayedCoordSystem = state.displayedCoordSystem;
   }
+  if ( drawn.g5xIndex != state.g5xIndex ) {
+    forceRefresh = true;
+    drawn.g5xIndex = state.g5xIndex;
+  }
   for ( int axis = 0; axis < state.displayedAxes; axis++ ) {
     drawAxis(axis, forceRefresh);
   }
@@ -325,11 +329,11 @@ int ManualmaticDisplay::axisColour(uint8_t axis) {
   if ( !state.homed[axis] ) {
     return RED;
   }
-  if ( state.displayedCoordSystem == 0 ) { //Abs
+  if ( state.displayedCoordSystem == DISPLAY_COORDS_ABS ) { //Abs
     return YELLOW;
-  } else if ( state.displayedCoordSystem == 1 ) { //DTG
+  } else if ( state.displayedCoordSystem == DISPLAY_COORDS_DTG ) { //DTG
     return BLUE;
-  } else if ( state.displayedCoordSystem == 2 ) { //G5x
+  } else if ( state.displayedCoordSystem == DISPLAY_COORDS_G5X ) { //G5x
     return GREEN;
   }
   return WHITE;
@@ -352,18 +356,23 @@ void ManualmaticDisplay::drawAxisCoord(uint8_t axis, bool forceRefresh /*= false
     gfx.fillRect(areas.axesCoords.x(), areas.axes.yDiv(da, axis), areas.axesCoords.w(), areas.axes.hDiv(da), BLACK );
     gfx.setFont(&FreeMono9pt7b);
     gfx.setCursor(areas.axesCoords.x(), areas.axes.yCl(da, axis) + 12);
-    gfx.print(coordSystem[state.displayedCoordSystem]);
+    if ( state.displayedCoordSystem == DISPLAY_COORDS_G5X) {
+      //Work around LinuxCNC issue: https://github.com/LinuxCNC/linuxcnc/issues/2590
+      gfx.print(G5xLabel[state.g5xIndex == 0 ? 1 : state.g5xIndex]);
+    } else {
+      gfx.print(coordSystem[state.displayedCoordSystem]);
+    }
   }
 }
 
 bool ManualmaticDisplay::setDisplayedAxisValue(uint8_t axis) {
   float old = state.displayedAxisValues[axis];
-  if ( state.displayedCoordSystem == 0 ) {
+  if ( state.displayedCoordSystem == DISPLAY_COORDS_ABS ) {
     state.displayedAxisValues[axis] = state.axisAbsPos[axis];
-  } else if ( state.displayedCoordSystem == 2 ) {
+  } else if ( state.displayedCoordSystem == DISPLAY_COORDS_G5X ) {
     //Should this calculation move to state?
-    state.displayedAxisValues[axis] = state.axisAbsPos[axis] - state.g5xOffsets[axis] - state.g92Offsets[axis] - state.toolOffsets[axis]; //@TODO Check - this seems too convoluted.
-  } else if ( state.displayedCoordSystem == 1 ) {
+    state.displayedAxisValues[axis] = state.axisAbsPos[axis] - state.g5xOffsets[axis] - state.g92Offsets[axis] - state.toolOffsets[axis];
+  } else if ( state.displayedCoordSystem == DISPLAY_COORDS_DTG ) {
     state.displayedAxisValues[axis] = state.axisDtg[axis];
   }
   return state.displayedAxisValues[axis] != old;

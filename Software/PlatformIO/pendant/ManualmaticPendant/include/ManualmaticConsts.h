@@ -102,6 +102,10 @@ enum Exec_state_e : uint8_t {
   RCS_DONE, RCS_EXEC, RCS_ERROR
 };
 
+enum Display_coords_e : uint8_t {
+  DISPLAY_COORDS_ABS, DISPLAY_COORDS_DTG, DISPLAY_COORDS_G5X, DISPLAY_COORDS_NONE, 
+};
+
 /**
  * @brief The state of a program when in 'auto' mode
  * 
@@ -255,7 +259,14 @@ const unsigned long spindleRateLimit = 100; //ms
  */
 const unsigned long feedRateLimit = 100; //ms
 
-const char coordSystem[3][4] = {"Abs", "DTG", "G54"};
+const char coordSystem[3][4] = {"Abs", "DTG", "G5x"};
+
+/**
+ * @brief Follows the convention of linuxcnc (except Tool)
+ */
+const char G5xLabel[10][6] = { "Tool", "G54", "G55", "G56", "G57", "G85", "G59", "G59.1", "G59.2", "G59.3" };
+
+
 
 enum ErrorMessage_e : uint8_t {
     ERRMSG_NONE,

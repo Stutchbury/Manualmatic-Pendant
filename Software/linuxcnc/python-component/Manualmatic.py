@@ -510,6 +510,7 @@ class Manualmatic(Commands):
     print ("Serial error:", error)
 
   def resend_positions(self):
+    self.g5x_index.forceRefresh()
     self.g5x_values.forceRefresh()
     self.g92_values.forceRefresh()
     self.tool_values.forceRefresh()
@@ -537,6 +538,7 @@ class Manualmatic(Commands):
       self.g92_values,
       self.tool_values,
       self.absolute_pos_values,
+      MachineStateCommand(Commands.CMD_G5X_INDEX, lambda: self.ls.g5x_index),
       MachineStateArray(Commands.CMD_DTG, self.axes_list, lambda i: self.ls.dtg[i], formatter=fmtround5),
       MachineStateValue(Commands.CMD_SPINDLE_OVERRIDE, lambda: self.ls.spindle[0]["override"]),
       MachineStateValue(Commands.CMD_SPINDLE_RPM, lambda: self.ls.spindle[0]["speed"]),

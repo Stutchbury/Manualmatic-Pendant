@@ -85,6 +85,7 @@ class ManualmaticState {
     Axis_e currentAxis = AXIS_NONE;
     Flood_e flood = FLOOD_OFF;
     Mist_e mist = MIST_OFF;
+    uint8_t g5xIndex = 1;
     float g5xOffsets[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     float g92Offsets[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     float toolOffsets[8] = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -94,9 +95,9 @@ class ManualmaticState {
     uint8_t all_homed = 0;
     float displayedAxisValues[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     uint8_t displayedAxes = 4;
-    uint8_t currentCoordSystem = 2; //Not used??
-    uint8_t displayedCoordSystem = 2;
-    uint8_t prevCoordSystem = 0;
+    //uint8_t currentCoordSystem = 2; //Not used??
+    Display_coords_e displayedCoordSystem = DISPLAY_COORDS_G5X;
+    Display_coords_e prevCoordSystem = DISPLAY_COORDS_NONE;
     float spindleOverride = 1;
     float spindleSpeed = 0; // Commanded spindle speed
     float spindleRpm = 0; // Actual spindle rpm

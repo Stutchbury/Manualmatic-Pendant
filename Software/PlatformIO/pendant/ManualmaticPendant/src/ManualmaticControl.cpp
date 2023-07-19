@@ -398,19 +398,19 @@ void ManualmaticControl::toggleASelected(EventButton& btn) {
 /** ********************************************************************** */
 void ManualmaticControl::toggleDisplayAbsG5x(EventButton& btn) {
   //if ( isScreen(SCREEN_MANUAL) ) {
-    if ( state.displayedCoordSystem == 1 ) { //Currently Dtg
+    if ( state.displayedCoordSystem == DISPLAY_COORDS_DTG ) { //Currently Dtg
       state.displayedCoordSystem = state.prevCoordSystem;
     } else {
-      state.displayedCoordSystem = ( state.displayedCoordSystem == 0 ? 2 : 0 );
+      state.displayedCoordSystem = ( state.displayedCoordSystem == DISPLAY_COORDS_ABS ? DISPLAY_COORDS_G5X : DISPLAY_COORDS_ABS );
     }
   //}
 }
 /** ********************************************************************** */
 void ManualmaticControl::displayDtg(EventButton& btn) {
   //if ( isScreen(SCREEN_MANUAL) ) {
-    if ( state.displayedCoordSystem != 1 ) {
+    if ( state.displayedCoordSystem != DISPLAY_COORDS_DTG ) {
       state.prevCoordSystem = state.displayedCoordSystem;
-      state.displayedCoordSystem = 1;
+      state.displayedCoordSystem = DISPLAY_COORDS_DTG;
     } else {
       state.displayedCoordSystem = state.prevCoordSystem;
     }
@@ -819,9 +819,9 @@ void ManualmaticControl::onButtonTouchOff() {
     return;
   }
   if ( state.isButtonRow(BUTTON_ROW_MANUAL) && state.currentAxis != AXIS_NONE ) {
+    brkp.enable(false); //and disable the button row keypad 
     state.setScreen(SCREEN_OFFSET_KEYPAD);
     okp.enable(); //Enable the offset touch keypad
-    brkp.enable(false); //and disable the button row keypad 
   }
 }
 

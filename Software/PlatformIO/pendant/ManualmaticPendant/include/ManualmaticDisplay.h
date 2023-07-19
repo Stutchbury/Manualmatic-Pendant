@@ -53,7 +53,7 @@ class ManualmaticDisplay {
     ManualmaticOffsetKeypad& okp;
     ManualmaticIcons icons;
 
-    unsigned long lastDisplayRefresh = 0;
+    uint32_t lastDisplayRefresh = 0;
     bool forceRefresh = false;
 
     const uint16_t displayWidth = 320;
@@ -78,6 +78,7 @@ class ManualmaticDisplay {
       float displayedAxisValues[8] = {0, 0, 0, 0, 0, 0, 0, 0};
       uint8_t displayedAxes = 4;
       uint8_t displayedCoordSystem = 2;
+      uint8_t g5xIndex = 1;
       float spindleOverride = 1;
       float spindleSpeed = 0; // Commanded spindle speed (multiplied by override to give rpm)
       float spindleRpm = 0; // Actual spindale speed

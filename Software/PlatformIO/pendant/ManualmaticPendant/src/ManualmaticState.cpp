@@ -67,12 +67,9 @@ void ManualmaticState::update(char cmd[2], char payload[30]) {
       case CMD_PROGRAM_STATE:
         program_state = static_cast<Program_state_e>(cmd[1]-'0');
         break;      
-  //    case CMD_AXES: // @TODO move to ini
-  //      // @TODO check if axes value may be > than actual number of axes (eg XYYZ)
-  //      // see: https://linuxcnc.org/docs/2.8/html/config/ini-config.html#_traj_section [COORDINATES]
-  //      config.axes = atoi(payload);
-  //      displayedAxes = config.axes;
-  //      break;
+      case CMD_G5X_INDEX:
+        g5xIndex = (uint8_t)cmd[1]-'0';
+        break;
       case CMD_G5X_OFFSET:
         if ( strchr("012345678", cmd[1]) != NULL ) {
           g5xOffsets[((int)cmd[1])-'0'] = atof(payload);
