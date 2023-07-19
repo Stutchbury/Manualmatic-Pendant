@@ -479,7 +479,8 @@ class Manualmatic(Commands):
       if (self.ls.task_mode != self.linuxcnc.MODE_AUTO or
           self.ls.file is None or len(self.ls.file) == 0):
           return self.PROGRAM_STATE_NONE      
-      if (self.ls.state == self.linuxcnc.RCS_DONE):
+      if (self.ls.state == self.linuxcnc.RCS_DONE or 
+          self.ls.state == self.linuxcnc.RCS_ERROR):
           return self.PROGRAM_STATE_STOPPED
       elif (self.ls.state == self.linuxcnc.RCS_EXEC):
           if (self.ls.task_paused == 1 and self.ls.current_vel == 0 ):
