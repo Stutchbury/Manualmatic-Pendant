@@ -870,9 +870,10 @@ void ManualmaticControl::onJoystickIdle(EventJoystick& ejs) {
 }
 
 void ManualmaticControl::onJoystickClicked(EventButton& ejs) {
-  if ( !state.isReady() ) {
+  if ( !state.isReady() || joystick.x.position() != 0 || joystick.y.position() != 0 ) {
     return;
   }
+
   if ( !joystick.enabled() || state.joystickAxis[0] == AXIS_NONE ) {
     joystick.enable(true);
     state.joystickAxis[0] = config.joystickAxisDefault[0];
@@ -885,7 +886,7 @@ void ManualmaticControl::onJoystickClicked(EventButton& ejs) {
 }
 
 void ManualmaticControl::onJoystickDoubleClicked(EventButton& ejs) {
-  if ( !state.isReady() ) {
+  if ( !state.isReady() || joystick.x.position() != 0 || joystick.y.position() != 0 ) {
     return;
   }
   joystick.enable(true);  
