@@ -53,8 +53,7 @@ class ManualmaticDisplay {
     ManualmaticOffsetKeypad& okp;
     ManualmaticIcons icons;
 
-    unsigned long now = millis();
-    unsigned long lastDisplayRefresh = 0;
+    uint32_t lastDisplayRefresh = 0;
     bool forceRefresh = false;
 
     const uint16_t displayWidth = 320;
@@ -79,15 +78,18 @@ class ManualmaticDisplay {
       float displayedAxisValues[8] = {0, 0, 0, 0, 0, 0, 0, 0};
       uint8_t displayedAxes = 4;
       uint8_t displayedCoordSystem = 2;
+      uint8_t g5xIndex = 1;
       float spindleOverride = 1;
-      float spindleRpm = 400; // @TODO set from config default Spindle rpm set on the pendant
-      float spindleSpeed = 0; // Set speed of the spindle on the machine
+      float spindleSpeed = 0; // Commanded spindle speed (multiplied by override to give rpm)
+      float spindleRpm = 0; // Actual spindale speed
+      int8_t spindleDirection = 0; //Indicates whether spindle is on or off 1=fwd, -1=rev, 0=stopped
       float rapidrate = 1;
       float rapidSpeed = 0;
       float rapid_vel = 0; //locally calculated for display based on current_vel & motion_type
       float feed_vel = 0; //locally calculated for display based on current_vel & motion_type
       float feedrate = 1;
       float jogVelocity[2] = { 180, 3000 }; //Sent to serial (as mm/min) but does not update gmoccapy
+      bool pulseDrawn = false;
       JogRange_e jogVelocityRange = JOG_RANGE_HIGH;
       uint8_t currentJogIncrement = 3;
       ButtonRow_e buttonRow = BUTTON_ROW_NONE;
@@ -96,7 +98,7 @@ class ManualmaticDisplay {
       Task_mode_e task_mode = MODE_UNKNOWN;
       Flood_e flood = FLOOD_OFF;
       Mist_e mist = MIST_OFF;
-    
+      ErrorMessage_e errorMessage = ERRMSG_NONE;
     };
 
 
@@ -120,6 +122,7 @@ class ManualmaticDisplay {
      */
     void drawScreenManual(bool forceRefresh = false);
     void drawScreenAuto(bool forceRefresh);
+    void drawScreenMdi(bool forceRefresh);
     void drawScreenSplash(bool forceRefresh);
     void drawScreenEstopped(bool forceRefresh);
     void drawScreenEstopReset(bool forceRefresh);
@@ -155,7 +158,7 @@ class ManualmaticDisplay {
     /** ***************************************************************
        In manual mode, spindle RPM is set directly
     */
-    void drawSpindleRpm(bool forceRefresh = false );
+    void drawSpindleSpeed(bool forceRefresh = false );
 
     void drawEncoderValue(uint8_t pos, uint8_t lineNum, const char *val, const char *uom, int bg = BLACK, int fg = WHITE );
     void drawEncoderValue(uint8_t pos, uint8_t lineNum, const char *val, int bg = BLACK, int fg = WHITE );
@@ -164,7 +167,7 @@ class ManualmaticDisplay {
     /** ***************************************************************
        Actual spindle speed
     */
-    void drawSpindleSpeed(bool forceRefresh = false );
+    void drawSpindleRpm(bool forceRefresh = false );
     void drawJogIncrement(bool forceRefresh = false );
     void drawJogVelocity(bool forceRefresh = false );
 
@@ -179,8 +182,12 @@ class ManualmaticDisplay {
      * This is the centred label for the button (when there are only yes/no options)
      */
     void drawButtonRowPrompt(char const* label );
+    void drawButtonRowError(char const* label );
     void drawStopButton();
     
+    void drawPulse();
+
+
     struct DisplayAreas_s {
       DisplayArea axes;
       DisplayArea axesMarkers;

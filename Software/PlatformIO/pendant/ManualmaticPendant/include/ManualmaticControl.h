@@ -96,10 +96,6 @@ class ManualmaticControl {
 
     ButtonRow_e buttonRow = BUTTON_ROW_NONE;
 
-    unsigned long now = millis();
-    unsigned long lastHeartbeat = 0;
-
-
     void setupEncoders();
     void setupButtons();
     void setupButtonRowKeypad();
@@ -107,6 +103,7 @@ class ManualmaticControl {
     void setupJoystick();
 
     void checkEstop(bool force=false);
+    void checkHeartbeat();
     void onIniReceived();
 
     void onFeedEncoder(EncoderButton& rb);

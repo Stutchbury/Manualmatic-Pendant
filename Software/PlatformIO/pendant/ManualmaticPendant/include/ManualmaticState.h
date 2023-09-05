@@ -69,7 +69,12 @@ class ManualmaticState {
     //   ButtonRow_e buttonRow = BUTTON_ROW_NONE;
     // };
     
-    
+    // Hold a consistent 'time' for each loop
+    uint32_t now = millis();
+    uint32_t lastHeartbeatSent = 0; //0 denotes no heartbeat
+    uint32_t lastHeartbeatReceived = 0; //0 denotes no heartbeat
+    bool pulse = false; //Toggled by send hearbeat
+
     uint8_t estop_is_activated = digitalRead(SOFT_ESTOP);
     Task_state_e task_state = STATE_INIT;
     Task_mode_e task_mode = MODE_UNKNOWN;
@@ -80,20 +85,23 @@ class ManualmaticState {
     Axis_e currentAxis = AXIS_NONE;
     Flood_e flood = FLOOD_OFF;
     Mist_e mist = MIST_OFF;
+    uint8_t g5xIndex = 1;
     float g5xOffsets[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    float g92Offsets[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    float toolOffsets[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     float axisAbsPos[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     float axisDtg[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     uint8_t homed[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     uint8_t all_homed = 0;
     float displayedAxisValues[8] = {0, 0, 0, 0, 0, 0, 0, 0};
     uint8_t displayedAxes = 4;
-    uint8_t currentCoordSystem = 2; //Not used??
-    uint8_t displayedCoordSystem = 2;
-    uint8_t prevCoordSystem = 0;
+    //uint8_t currentCoordSystem = 2; //Not used??
+    Display_coords_e displayedCoordSystem = DISPLAY_COORDS_G5X;
+    Display_coords_e prevCoordSystem = DISPLAY_COORDS_NONE;
     float spindleOverride = 1;
-    float spindleRpm = 400; // @TODO set from config default Spindle rpm set on the pendant
-    float spindleSpeed = 0; // Set speed of the spindle on the machine
-    int8_t currentSpindleDir = 0;
+    float spindleSpeed = 0; // Commanded spindle speed
+    float spindleRpm = 0; // Actual spindle rpm
+    int8_t spindleDirection = 0; //Indicates whether spindle is on or off 1=fwd, -1=rev, 0=stopped
     float feedrate = 1;
     float rapidrate = 1;
     float rapidSpeed = 0;
@@ -107,7 +115,7 @@ class ManualmaticState {
     float jogVelocity[2] = { 180, 3000 }; //Sent to serial (as mm/min) but does not update gmoccapy
     JogRange_e jogVelocityRange = JOG_RANGE_HIGH;
     //
-    uint8_t iniState = 0;
+    Ini_state_e iniState = INI_STATE_DISCONNECTED;
     //
     bool refreshDisplay = false;
     Screen_e screen = SCREEN_INIT;
@@ -118,6 +126,9 @@ class ManualmaticState {
     //The row of buttons
     ButtonRow_e buttonRow = BUTTON_ROW_NONE;
     ButtonRow_e previousButtonRow = BUTTON_ROW_NONE;
+
+    ErrorMessage_e errorMessage = ERRMSG_NONE;
+    int errorMessageStartTime;
 
     char debug[20];
 
@@ -144,12 +155,17 @@ class ManualmaticState {
       return all_homed == 1;
     }
 
-    bool isReady() {
-      return ( task_state == STATE_ON && isHomed() );
-    }
+    /**
+     * @brief Check if the machine is on and homed.
+     * 
+     * By default, set a message if not homed. Can be used silently by
+     * passing 'false'.
+     * 
+     */
+    bool isReady(bool setMessage = true);
 
     bool isIdle() {
-      return isReady() && interpState == INTERP_IDLE;
+      return isReady(false) && interpState == INTERP_IDLE;
     }
 
     bool isManual() {
@@ -194,13 +210,15 @@ class ManualmaticState {
 
 
     /**
-     * Set the spindle RPM on the pendant (manual mode)
-     * Ensure we cannot accidentally reverse direction @TODO use actual 
-     * spindle speed instead of spindle dir for this?
+     * Set the commanded spindle speed on the pendant (manual mode)
+     * Ensure we cannot accidentally reverse direction.
      */
-    void setSpindleRpm(int16_t incr);
+    void setSpindleSpeed(int16_t incr);
 
+    void setErrorMessage(ErrorMessage_e error);
 
+    void onConnected();
+    void onDisconnected();
 
   private:
     ManualmaticConfig& config;

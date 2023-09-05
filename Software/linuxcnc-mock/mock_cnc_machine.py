@@ -23,15 +23,17 @@ import threading
 
 sys.path.append('../linuxcnc/python-component/')
 
-from Manualmatic import Manualmatic
+from Manualmatic import Manualmatic, SerialInterface
 
 exitapp = False
 
-from linuxcnc_mock import linuxcnc_mock
+from linuxcnc_mock import linuxcnc_mock, hal
 c = {"estop-is-activated": 0}
-linuxcnc = linuxcnc_mock()
+hal = hal()
+linuxcnc = linuxcnc_mock(hal)
 
-mm = Manualmatic(linuxcnc, c)
+
+mm = Manualmatic(linuxcnc, hal, c, SerialInterface())
 
 
 def initPendant():
@@ -80,11 +82,10 @@ def main():
     #inThread.join()
     time.sleep(0.5)
     linuxcnc.task_state = 2
-    mm.connect()
     print("connected")
     initPendant()
     #mm.init(0.04) #spawn new thread
-    mm.start(0.04) #stay in this thread
+    mm.start() #stay in this thread
 
   except (Exception):
     raise
