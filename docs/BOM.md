@@ -22,6 +22,7 @@ These are the components I have chosen to use for the Manualmatic when using the
 |14|![Estop](../images/16mmEstop.jpg) | n/a | 1 | 16mm Estop button | Example: https://www.ebay.co.uk/itm/184899597984 | Generic|
 |15|![USB Cable](../images/right-angle-micro-usb.jpg) | n/a | 1| 2-3m tight/compact right angle micro-USB cable | Example: https://www.ebay.co.uk/itm/194756552182?var=494734226747 | Generic|
 |16|![PCB](../images/manualmatic-pcbs.jpeg) | n/a | 1 | Custom PCB| Contact me (email address on my profile)  | Stutchbury|
+|17|![Stand-offs](../images/11mm-stand-offs.jpg) | n/a | 4 | 11mm stand-offs & screws|   | Generic |
 
 
 Unless you're brave enough to solder both the Teensy and the Adafruit display to the PCB (I'm not and the case *is not* designed for direct soldering), you'll need 48 female headers for the Teensy (item 9) and 14 female headers for the display (item 10).
