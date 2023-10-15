@@ -25,7 +25,7 @@ These are the components I have chosen to use for the Manualmatic when using the
 |17|![Stand-offs](../images/11mm-stand-offs.jpg) | n/a | 4 | 11mm stand-offs & screws|   | Generic |
 
 
-Unless you're brave enough to solder both the Teensy and the Adafruit display to the PCB (I'm not and the case *is not* designed for direct soldering), you'll need 48 female headers for the Teensy (item 9) and 14 female headers for the display (item 10).
+Unless you're brave enough to solder both the Teensy and the Adafruit display to the PCB (I'm not and the case *is not* designed for direct soldering), you'll need 48 female headers for the Teensy (item 11) and 14 female headers for the display (item 12).
 
 I bought these as 4 x 12 pins and 2 x 7 pins as this was significantly cheaper than contiguous blocks. You may need to lightly file adjacent edges so they don't bow the board when soldered in.
 
