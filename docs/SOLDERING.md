@@ -26,6 +26,14 @@ I highly recommend putting the headers on the top for ease of assembly. <br/>
 If you are using a a hard wired (or no) estop, you can either bridge these headers or change ```useSoftEstop``` to ```false``` in ```ManualmaticConfig.h``` to free up J3 (GND & pin 27/A13) as spare connection.  <br/>
 **NOTE:** Please see main documentation to check if you need to implement the LinuxCNC estop_latch. 
 
+### The Finished PCB
+
+For reference here are the top & bottom views of the PCB (with the Teensy 4.1 plugged in):
+<br/> 
+![PCB top complete](../images/pcb-top-complete.jpg)
+
+![PCB bottom complete](../images/pcb-bottom-complete.jpg)
+
 
 ### Optional Connections
 
