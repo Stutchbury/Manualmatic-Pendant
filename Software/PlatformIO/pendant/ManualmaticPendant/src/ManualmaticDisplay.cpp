@@ -17,7 +17,7 @@ ManualmaticDisplay::ManualmaticDisplay(
     { areas.axes = DisplayArea(0, 0, displayWidth, axesAreaHeight);
       areas.axesMarkers = DisplayArea(0, 0, 19, axesAreaHeight);
       areas.axesLabels = DisplayArea(20, 0, 50, axesAreaHeight);
-      areas.axesCoords = DisplayArea(50, 0, 32, axesAreaHeight);
+      areas.axesCoords = DisplayArea(50, 0, 52, axesAreaHeight);
       areas.encoderLabel[0] = DisplayArea(0, axesAreaHeight, encoderColumnWidth, encoderLabelAreaHeight);
       areas.encoderLabel[1] = DisplayArea(encoderColumnWidth + 1, axesAreaHeight, encoderColumnWidth, encoderLabelAreaHeight);
       areas.encoderLabel[2] = DisplayArea((encoderColumnWidth * 2) + 2, axesAreaHeight, encoderColumnWidth, encoderLabelAreaHeight);
@@ -33,7 +33,7 @@ ManualmaticDisplay::ManualmaticDisplay(
 
       areas.axisMarkers = DisplayArea(0, 0, 16, axesAreaHeight);
 
-      areas.debugRow = DisplayArea(0, areas.buttonLabels[0].y(), 340, areas.buttonLabels[0].h());
+      areas.debugRow = DisplayArea(0, areas.buttonLabels[0].y(), displayWidth, areas.buttonLabels[0].h());
 
 
   }
@@ -52,9 +52,8 @@ void ManualmaticDisplay::update(bool forceRefresh /*= false*/) {
  * The main display function called once per loop - decides what
  * to display based on actual state vs drawn state.
  */
-  now = millis();
-  if ( now > lastDisplayRefresh + displayRefreshMs ) {
-    lastDisplayRefresh = now;
+  if ( state.now > lastDisplayRefresh + displayRefreshMs ) {
+    lastDisplayRefresh = state.now;
     
     if ( drawn.task_state != state.task_state ) {
       forceRefresh = true;
@@ -76,8 +75,9 @@ void ManualmaticDisplay::update(bool forceRefresh /*= false*/) {
       case SCREEN_AUTO:
         drawScreenAuto(forceRefresh);
         break;
-      //      case SCREEN_MDI:
-      //      break;
+      case SCREEN_MDI:
+        drawScreenMdi(forceRefresh);
+        break;
       case SCREEN_OFFSET_KEYPAD:
         okp.draw();
         break;
@@ -93,6 +93,7 @@ void ManualmaticDisplay::update(bool forceRefresh /*= false*/) {
       default: //SCREEN_INIT
         drawScreenSplash(forceRefresh);
     }
+    drawPulse();
     state.refreshDisplay = false;
   }
   
@@ -214,6 +215,15 @@ void ManualmaticDisplay::drawScreenAuto(bool forceRefresh /*= false*/) {
 //  drawDebug();
 }
 
+void ManualmaticDisplay::drawScreenMdi(bool forceRefresh /*= false*/) {
+  drawLines(forceRefresh);
+  drawAxes(forceRefresh);
+  drawModeLabel(forceRefresh);
+  drawAutoEncoderRow(forceRefresh);
+  drawButtonRow(forceRefresh);
+//  drawDebug();
+}
+
 void ManualmaticDisplay::drawScreenSplash(bool forceRefresh) {
   if ( forceRefresh ) {
     gfx.fillScreen(BLACK);
@@ -276,6 +286,10 @@ void ManualmaticDisplay::drawAxes(bool forceRefresh /*= false*/) {
     forceRefresh = true;
     drawn.displayedCoordSystem = state.displayedCoordSystem;
   }
+  if ( drawn.g5xIndex != state.g5xIndex ) {
+    forceRefresh = true;
+    drawn.g5xIndex = state.g5xIndex;
+  }
   for ( int axis = 0; axis < state.displayedAxes; axis++ ) {
     drawAxis(axis, forceRefresh);
   }
@@ -315,11 +329,11 @@ int ManualmaticDisplay::axisColour(uint8_t axis) {
   if ( !state.homed[axis] ) {
     return RED;
   }
-  if ( state.displayedCoordSystem == 0 ) { //Abs
+  if ( state.displayedCoordSystem == DISPLAY_COORDS_ABS ) { //Abs
     return YELLOW;
-  } else if ( state.displayedCoordSystem == 1 ) { //DTG
+  } else if ( state.displayedCoordSystem == DISPLAY_COORDS_DTG ) { //DTG
     return BLUE;
-  } else if ( state.displayedCoordSystem == 2 ) { //G5x
+  } else if ( state.displayedCoordSystem == DISPLAY_COORDS_G5X ) { //G5x
     return GREEN;
   }
   return WHITE;
@@ -342,17 +356,23 @@ void ManualmaticDisplay::drawAxisCoord(uint8_t axis, bool forceRefresh /*= false
     gfx.fillRect(areas.axesCoords.x(), areas.axes.yDiv(da, axis), areas.axesCoords.w(), areas.axes.hDiv(da), BLACK );
     gfx.setFont(&FreeMono9pt7b);
     gfx.setCursor(areas.axesCoords.x(), areas.axes.yCl(da, axis) + 12);
-    gfx.print(coordSystem[state.displayedCoordSystem]);
+    if ( state.displayedCoordSystem == DISPLAY_COORDS_G5X) {
+      //Work around LinuxCNC issue: https://github.com/LinuxCNC/linuxcnc/issues/2590
+      gfx.print(G5xLabel[state.g5xIndex == 0 ? 1 : state.g5xIndex]);
+    } else {
+      gfx.print(coordSystem[state.displayedCoordSystem]);
+    }
   }
 }
 
 bool ManualmaticDisplay::setDisplayedAxisValue(uint8_t axis) {
   float old = state.displayedAxisValues[axis];
-  if ( state.displayedCoordSystem == 0 ) {
+  if ( state.displayedCoordSystem == DISPLAY_COORDS_ABS ) {
     state.displayedAxisValues[axis] = state.axisAbsPos[axis];
-  } else if ( state.displayedCoordSystem == 2 ) {
-    state.displayedAxisValues[axis] = ( ( (state.axisAbsPos[axis] * -1)  +  state.g5xOffsets[axis] ) * -1); //@TODO Check - this seems too convoluted.
-  } else if ( state.displayedCoordSystem == 1 ) {
+  } else if ( state.displayedCoordSystem == DISPLAY_COORDS_G5X ) {
+    //Should this calculation move to state?
+    state.displayedAxisValues[axis] = state.axisAbsPos[axis] - state.g5xOffsets[axis] - state.g92Offsets[axis] - state.toolOffsets[axis];
+  } else if ( state.displayedCoordSystem == DISPLAY_COORDS_DTG ) {
     state.displayedAxisValues[axis] = state.axisDtg[axis];
   }
   return state.displayedAxisValues[axis] != old;
@@ -405,18 +425,24 @@ void ManualmaticDisplay::drawAutoEncoderRow(bool forceRefresh /*= false*/) {
 
 void ManualmaticDisplay::drawSpindle(bool forceRefresh /*= false*/ ) {
   uint8_t a = 0;
-  if ( forceRefresh ) {
+    if ( forceRefresh ) {
     drawEncoderLabel(a, "Spindle");
   }
-  if ( !state.isAuto() && state.spindleSpeed == 0 ) {
-    drawSpindleRpm(forceRefresh);
+  bool refresh = forceRefresh || drawn.spindleDirection != state.spindleDirection;
+  if ( state.isManual() ) {
+    drawSpindleSpeed(refresh); //Either large or samll
     drawn.spindleOverride = NAN; //will force refresh when spindle started
-    drawn.spindleSpeed = NAN; //will force refresh when spindle started
+    if ( state.spindleDirection == 0 ) {
+      drawn.spindleRpm = NAN; //will force refresh when spindle started
+    } else {
+      drawSpindleRpm(refresh);
+    }
   } else {
-    drawn.spindleRpm = NAN; //will force refresh when spindle stopped
-    drawSpindleOverride(forceRefresh);
-    drawSpindleSpeed(forceRefresh);
+    drawn.spindleSpeed = NAN; //will force refresh when spindle stopped
+    drawSpindleOverride(refresh);
+    drawSpindleRpm(refresh);
   }
+  drawn.spindleDirection = state.spindleDirection;
 }
 
 
@@ -435,13 +461,18 @@ void ManualmaticDisplay::drawEncoderLabel(uint8_t pos, const char *label, int bg
   gfx.setTextColor(WHITE);
 }
 
-void ManualmaticDisplay::drawSpindleRpm(bool forceRefresh /*= false*/ ) {
-  if ( forceRefresh || drawn.spindleRpm != state.spindleRpm * state.spindleOverride ) {
+void ManualmaticDisplay::drawSpindleSpeed(bool forceRefresh /*= false*/ ) {
+  //Here spindle speed is treated as spindle rpm for display purposes
+  if ( forceRefresh || drawn.spindleSpeed != state.spindleSpeed * state.spindleOverride ) {
     uint8_t a = 0;
     char buffer[10];
-    dtostrf((state.spindleRpm * state.spindleOverride), -6, 0, buffer);
-    drawEncoderValue(a, 0, buffer);
-    drawn.spindleRpm = state.spindleRpm * state.spindleOverride;
+    dtostrf((state.spindleSpeed * state.spindleOverride), -6, 0, buffer);
+    if ( state.spindleDirection == 0 ) {
+      drawEncoderValue(a, 0, buffer); //spindle not running so draw big
+    } else {
+      drawEncoderValue(a, 1, buffer); //spindle is running so draw small
+    }
+    drawn.spindleSpeed = state.spindleSpeed * state.spindleOverride;
   }
 }
 
@@ -498,13 +529,13 @@ void ManualmaticDisplay::drawSpindleOverride(bool forceRefresh /*= false*/ ) {
 /** ***************************************************************
    Actual spindle speed
 */
-void ManualmaticDisplay::drawSpindleSpeed(bool forceRefresh /*= false*/ ) {
-  if ( forceRefresh || drawn.spindleSpeed != (state.spindleSpeed * state.spindleOverride) ) {
+void ManualmaticDisplay::drawSpindleRpm(bool forceRefresh /*= false*/ ) {
+  if ( forceRefresh || drawn.spindleRpm != (state.spindleRpm * state.spindleOverride) ) {
     uint8_t a = 0;
     char buffer[10];
-    dtostrf((state.spindleSpeed * state.spindleOverride), -6, 0, buffer);
-    drawEncoderValue(a, 2, buffer);
-    drawn.spindleSpeed = (state.spindleSpeed * state.spindleOverride);
+    dtostrf((state.spindleRpm * state.spindleOverride), -6, 0, buffer);
+    drawEncoderValue(a, 2, buffer, 0, LIGHTGREY);
+    drawn.spindleRpm = (state.spindleRpm * state.spindleOverride);
   }
 }
 
@@ -584,7 +615,7 @@ void ManualmaticDisplay::drawRapidVelocity(bool forceRefresh /*= false*/ ) {
     uint8_t a = 1;
     char buffer[10];
     dtostrf(state.rapid_vel, -6, 0, buffer);
-    drawEncoderValue(a, 2, buffer);
+    drawEncoderValue(a, 2, buffer, 0, LIGHTGREY);
     drawn.rapid_vel = state.rapid_vel;
   }
 }
@@ -609,13 +640,31 @@ void ManualmaticDisplay::drawFeedVelocity(bool forceRefresh /*= false*/ ) {
     uint8_t a = 2;
     char buffer[10];
     dtostrf(state.feed_vel, -6, 0, buffer);
-    drawEncoderValue(a, 2, buffer);
+    drawEncoderValue(a, 2, buffer, 0, LIGHTGREY);
     drawn.feed_vel = state.feed_vel;
   }
 }
 
 
 void ManualmaticDisplay::drawButtonRow(bool forceRefresh /*= false*/) {
+  if ( forceRefresh || drawn.errorMessage != state.errorMessage ) {
+    const char *errmsg = nullptr;
+    switch( state.errorMessage ) {
+      case ERRMSG_NONE:
+        break;
+      case ERRMSG_NOT_HOMED:
+        errmsg = "Not homed";
+        break;
+    }
+    if ( errmsg ) {
+      brkp.clear();
+      drawButtonRowError(errmsg);
+    }
+    drawn.errorMessage = state.errorMessage;
+  }
+  if ( state.errorMessage != ERRMSG_NONE ) {
+    return;
+  }
   if ( forceRefresh || drawn.buttonRow != state.buttonRow ) {
     brkp.clear();
     //Draw the configured buttons
@@ -655,6 +704,17 @@ void ManualmaticDisplay::drawButtonRowPrompt(char const* label ) {
   int16_t  x, y;
   uint16_t w, h;
   gfx.fillRect(areas.buttonLabels[1].x() - 1, areas.buttonLabels[1].y()+1, (areas.buttonLabels[1].w() * 3) + 5, areas.buttonLabels[3].h(), BLACK);
+  gfx.setFont(&FreeSansBold12pt7b);
+  gfx.getTextBounds(label, areas.buttonLabels[2].x(), areas.encoderLabel[0].b(), &x, &y, &w, &h);
+  gfx.setCursor(areas.buttonLabels[2].xCl() - (w / 2), areas.buttonLabels[2].yCl() + (h / 2));
+  gfx.setTextColor(WHITE);
+  gfx.print(label);
+}
+
+void ManualmaticDisplay::drawButtonRowError(char const* label ) {
+  int16_t  x, y;
+  uint16_t w, h;
+  gfx.fillRect(areas.buttonLabels[0].x(), areas.buttonLabels[1].y()+1, displayWidth, areas.buttonLabels[0].h(), RED);
   gfx.setFont(&FreeSansBold12pt7b);
   gfx.getTextBounds(label, areas.buttonLabels[2].x(), areas.encoderLabel[0].b(), &x, &y, &w, &h);
   gfx.setCursor(areas.buttonLabels[2].xCl() - (w / 2), areas.buttonLabels[2].yCl() + (h / 2));
@@ -704,4 +764,12 @@ void ManualmaticDisplay::drawButtonLine(uint8_t col) {
         WHITE);
   }
   gfx.drawFastHLine(areas.buttonLabels[0].x(), areas.buttonLabels[0].y(), displayWidth, WHITE);
+}
+
+void ManualmaticDisplay::drawPulse() {
+  if ( config.showPulse && drawn.pulseDrawn != state.pulse) {
+    Coords_s cp = { 311, 232 };
+    icons.drawPulse(cp, 2, state.pulse ? RED : BLACK);
+    drawn.pulseDrawn = state.pulse;
+  }
 }

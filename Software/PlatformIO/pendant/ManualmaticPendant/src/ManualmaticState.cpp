@@ -24,11 +24,14 @@ void ManualmaticState::update(char cmd[2], char payload[30]) {
         motion_type = static_cast<Motion_type_e>(cmd[1]-'0');
         setCurrentVelocities();
         break;
-      case CMD_SPINDLE_SPEED:
-        spindleSpeed = atof(payload);
+      case CMD_SPINDLE_RPM:
+        spindleRpm = atof(payload);
         break;
       case CMD_SPINDLE_OVERRIDE:
         spindleOverride = atof(payload);
+        break;
+      case CMD_SPINDLE_DIRECTION:
+        spindleDirection = atoi(payload);
         break;
   //    case CMD_MAX_FEED_OVERRIDE: //@TODO move to ini?
   //      feedSpeed = atof(payload);
@@ -36,8 +39,8 @@ void ManualmaticState::update(char cmd[2], char payload[30]) {
       case CMD_FEED_OVERRIDE:
         feedrate = atof(payload);
         break;
-      case CMD_RAPID_SPEED: // @TODO not used?
-        rapidSpeed = atof(payload);
+      case CMD_SPINDLE_SPEED: // @TODO not used?
+        spindleSpeed = atof(payload);
         break;
       case CMD_RAPID_OVERRIDE:
         rapidrate = atof(payload);
@@ -64,20 +67,27 @@ void ManualmaticState::update(char cmd[2], char payload[30]) {
       case CMD_PROGRAM_STATE:
         program_state = static_cast<Program_state_e>(cmd[1]-'0');
         break;      
-  //    case CMD_AXES: // @TODO move to ini
-  //      // @TODO check if axes value may be > than actual number of axes (eg XYYZ)
-  //      // see: https://linuxcnc.org/docs/2.8/html/config/ini-config.html#_traj_section [COORDINATES]
-  //      config.axes = atoi(payload);
-  //      displayedAxes = config.axes;
-  //      break;
+      case CMD_G5X_INDEX:
+        g5xIndex = (uint8_t)cmd[1]-'0';
+        break;
       case CMD_G5X_OFFSET:
         if ( strchr("012345678", cmd[1]) != NULL ) {
-          g5xOffsets[((int)cmd[1])-48] = atof(payload); //There's probably a better way than -48...  
+          g5xOffsets[((int)cmd[1])-'0'] = atof(payload);
+        } 
+        break;
+      case CMD_G92_OFFSET:
+        if ( strchr("012345678", cmd[1]) != NULL ) {
+          g92Offsets[((int)cmd[1])-'0'] = atof(payload);
+        } 
+        break;
+      case CMD_TOOL_OFFSET:
+        if ( strchr("012345678", cmd[1]) != NULL ) {
+          toolOffsets[((int)cmd[1])-'0'] = atof(payload);
         } 
         break;
       case CMD_DTG:
         if ( strchr("012345678", cmd[1]) != NULL ) {
-          axisDtg[((int)cmd[1])-48] = atof(payload); //There's probably a better way than -48...   
+          axisDtg[((int)cmd[1])-'0'] = atof(payload);
         }
         break;
       case CMD_HOMED:
@@ -97,6 +107,12 @@ void ManualmaticState::update(char cmd[2], char payload[30]) {
         break;
       case CMD_MIST:
         mist = static_cast<Mist_e>(cmd[1]-'0');
+        break;
+      case CMD_HEARTBEAT:
+        lastHeartbeatReceived = now;
+        if ( iniState == INI_STATE_DISCONNECTED ) {
+          onConnected();
+        }
         break;
     }
   }
@@ -216,16 +232,24 @@ void ManualmaticState::incrementJogIncrement(int16_t incr) {
   currentJogIncrement = min(max(0, currentJogIncrement+incr),3);
 }
 
-void ManualmaticState::setSpindleRpm(int16_t incr) {
-  spindleRpm = spindleRpm + (incr * 10);
-  if ( currentSpindleDir == 1 ) {
-    spindleRpm = max(spindleRpm,0);
-  } else if ( currentSpindleDir == -1 ) {
-    spindleRpm = min(spindleRpm, 0);
+/**
+ * @brief Set the commanded spindle speed
+ * 
+ * @param incr 
+ */
+void ManualmaticState::setSpindleSpeed(int16_t incr) {
+  spindleSpeed = spindleSpeed + (incr * 10);
+  if ( spindleSpeed > 0 ) {
+    spindleSpeed = min(max(spindleSpeed,0), (config.max_spindle_speed/spindleOverride));
+  } else if ( spindleSpeed < 0 ) {
+    spindleSpeed = max(min(spindleSpeed, 0), ((config.max_spindle_speed/spindleOverride)*-1));
   }
 }
 
-
+void ManualmaticState::setErrorMessage(ErrorMessage_e error) {
+  errorMessage = error;
+  errorMessageStartTime = now;
+}
 
 void ManualmaticState::setIniValue(char cmd1, char* payload) {
   switch (cmd1) {
@@ -246,7 +270,12 @@ void ManualmaticState::setIniValue(char cmd1, char* payload) {
       break;
     case INI_DEFAULT_SPINDLE_SPEED:
       config.default_spindle_speed = atof(payload);
-      spindleRpm = config.default_spindle_speed;
+      if ( spindleSpeed == 0 ) {
+        spindleSpeed = config.default_spindle_speed;
+      }
+      break;
+    case INI_MAX_SPINDLE_SPEED:
+      config.max_spindle_speed = atof(payload);
       break;
 //@TODO
 //      self.writeToSerial('iU', format(self.linear_units)) 
@@ -263,9 +292,43 @@ void ManualmaticState::setIniValue(char cmd1, char* payload) {
       config.max_linear_velocity = atof(payload);
       config.maxJogVelocity = config.max_linear_velocity*60;
       break;
+    case INI_NO_FORCE_HOMING:
+      config.noForceHoming = (atoi(payload) == 1);
+      break;
     case INI_COMPLETE:
-      iniState = 1;
+      iniState = INI_STATE_RECEIVED;
       break;
     //default:  
   }
+}
+
+/**
+ * @brief Check if the machine is on and homed.
+ * 
+ * By default, set a message if not homed. Can be used silently by
+ * passing 'false'.
+ * 
+ */
+bool ManualmaticState::isReady(bool setMessage /*= true*/)  {
+  if ( task_state != STATE_ON ) {
+    return false;
+  }
+  if ( !config.noForceHoming && !isHomed() ) {
+    if ( setMessage ) {
+      setErrorMessage(ERRMSG_NOT_HOMED);
+    }
+    return false;
+  }
+  return true;
+}
+
+void ManualmaticState::onConnected() {
+  iniState = INI_STATE_CONNECTED;
+}
+
+void ManualmaticState::onDisconnected() {
+  iniState = INI_STATE_DISCONNECTED;
+  lastHeartbeatReceived = 0;
+  lastHeartbeatSent = 0;
+  setScreen(SCREEN_SPLASH);
 }

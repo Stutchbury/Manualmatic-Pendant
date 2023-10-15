@@ -227,6 +227,17 @@ void ManualmaticIcons::drawJoystickMarker(Coords_s cp) {
     // );
 }
 
+void ManualmaticIcons::drawPulse(Coords_s cp, uint8_t r, int c/*=WHITE*/) {
+  gfx.fillCircle(cp.x+r, cp.y+r, r, c);
+  gfx.fillCircle(cp.x+(r*3), cp.y+r, r, c);
+  gfx.fillTriangle(cp.x, cp.y+r+1,
+                   cp.x+(r*4), cp.y+r+1, 
+                   cp.x+(r*2), cp.y+(r*3.5), 
+                   c);
+}
+
+
+
 /** ***************************************************************
 
 */

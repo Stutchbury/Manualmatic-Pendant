@@ -20,15 +20,17 @@ class command_mock():
     self.ls = ls
 
   ls = None
+
+
   
 
-# ##########################
+  # ##########################
   def abort(self):
     print("Abort sent!");
     self.ls.state = self.ls.RCS_DONE
     self.ls.task_paused = 0
 
-# ##########################
+  # ##########################
   def state(self, taskState):
     #@TODO - when turning off, state goes from on -> off -> to estop reset?
     #self.task_state = taskState
@@ -52,52 +54,54 @@ class command_mock():
 
   def spindle(self, dir, rpm, spindle=0):
     self.ls.spindle[0]['speed'] = rpm*dir
+    self.ls.spindle[0]['direction'] = dir
+    self.ls.hal.speed_cmd = rpm/60
 
-# ##########################
+  # ##########################
   def mode(self, m):
     self.ls.task_mode = m
-# ##########################
+  # ##########################
   def teleop_enable(self, en):
     None
 
-# ##########################
+  # ##########################
   def wait_complete(self):
     None
 
-# ##########################
+  # ##########################
   def set_spindle_override(self, onOff, spindle):
     self.ls.spindle_override = onOff
 
 
-# ##########################
+  # ##########################
   def spindleoverride(self, incr, spindle):
     self.ls.spindle[0]["override"] = incr
 
-# ##########################
+  # ##########################
   def jog(self, JOG_INCREMENT, jjogmode, axis, vel, distance):
     self.ls.actual_position[axis] += distance
 
-# ##########################
+  # ##########################
   def set_feed_override(self, b):
     self.ls.feed_override_enabled = b
 
-# ##########################
+  # ##########################
   def feedrate(self, f):
     self.ls.feedrate = f
 
-# ##########################
+  # ##########################
   def rapidrate(self, f):
     self.ls.rapidrate = f
 
-# ##########################
+  # ##########################
   def flood(self, onOff):
     self.ls.flood = onOff
 
-# ##########################
+  # ##########################
   def mist(self, onOff):
     self.ls.mist = onOff
 
-# ##########################
+  # ##########################
   def auto(self, action, line=1):
     print('auto: ' + format(action))
     if ( action == self.ls.AUTO_RUN ):
@@ -121,11 +125,13 @@ class command_mock():
 
 class linuxcnc_mock():
 
-  def __init__(self):
+  def __init__(self, _hal):
+    self.hal = _hal
     self.spindle[0] = {}
     self.spindle[0]['override_enabled'] = 0
     self.spindle[0]['override'] = 1
     self.spindle[0]['speed'] = 0
+    self.spindle[0]['direction'] = 0
     self.lc = command_mock(self)
 
   STATE_ESTOP=1
@@ -178,7 +184,7 @@ class linuxcnc_mock():
   PROGRAM_STATE_STOPPED=3
 
 
-
+  hal = None
   lc = None
 
   # #########################################################
@@ -191,10 +197,10 @@ class linuxcnc_mock():
   spindle_speed = None
   spindle_override = None # 0 off, 1 on
   spindle_override_val = 1 #%
-  homed = [0,0,0,0,0,0,0,0]
-  actual_position = [0.0]*8
-  g5x_offset = [0.0]*8
-  dtg = [None, None, None, None, None, None, None, None]
+  homed = [0] * 9
+  actual_position = [0.0]*9
+  g5x_offset = [0.0]*9
+  dtg = [0.0] * 9
   g5x_index = 1
   feedrate = 1
   feed_override_enabled = 0
@@ -240,8 +246,23 @@ class linuxcnc_mock():
     return None
 
 
+class hal():
 
+  def __init__(self):
+    speed_cmd = 0
+    speed_out_rps = 0
 
+  speed_cmd = 0
+  speed_out_rps = 0
+
+  def get_value(self, pin):
+    if (pin == "spindle.0.speed-out-rps"):
+      #print("speed_out_rps: " + str(self.speed_out_rps))
+      return self.speed_out_rps
+    if (pin == "spindle.0.speed-cmd-rps"):
+      #print("speed_cmd: " + str(self.speed_cmd))
+      return self.speed_cmd
+    return 0
 
 
 

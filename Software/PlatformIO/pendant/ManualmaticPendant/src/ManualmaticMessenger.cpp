@@ -18,7 +18,7 @@ ManualmaticMessenger::ManualmaticMessenger(ManualmaticMessage& message, Manualma
   {}
 
 void ManualmaticMessenger::ManualmaticMessenger::sendHeartbeat() {
-  serialMessage.send('b');
+  serialMessage.send(CMD_HEARTBEAT);
 }
 
 /** *************************************************************
@@ -115,20 +115,18 @@ void ManualmaticMessenger::sendG5xOffset(uint8_t axis, char offset[20] ) {
 
 
 /**
- * Directly control spindle RPM
+ * Directly control of spindle speed (RPM will be a result of speed * override)
  */
-void ManualmaticMessenger::sendSpindleRpm() {
-  serialMessage.send(CMD_SPINDLE_SPEED, state.spindleRpm, 0);
+void ManualmaticMessenger::sendSpindleSpeed() {
+  serialMessage.send(CMD_SPINDLE_SPEED, state.spindleSpeed, 0);
 }
 
 /**
  * Stop the spindle
  */
 void ManualmaticMessenger::stopSpindle() {
-  //state.spindleArmed = false;
-  //state.spindleRpm = 0;
-  state.currentSpindleDir = 0;
-  if ( state.spindleSpeed != 0 ) {
+  state.spindleDirection = 0;
+  if ( state.spindleRpm != 0 ) {
     serialMessage.send(CMD_SPINDLE_SPEED, 0);  
   }
 }
@@ -137,10 +135,8 @@ void ManualmaticMessenger::stopSpindle() {
  * Start the spindle
  */
 void ManualmaticMessenger::startSpindle() {
-    if ( /*istate.spindleArmed == true 
-      &&*/ state.spindleSpeed == 0 ) {
-      sendSpindleRpm();
-      state.currentSpindleDir = state.spindleRpm > 0 ? 1: -1;
+    if ( state.spindleDirection == 0 ) {
+      sendSpindleSpeed();
     }
 }
 
@@ -154,7 +150,12 @@ void ManualmaticMessenger::sendSpindleOverride(float pct /*=1*/) {
 
 void ManualmaticMessenger::incrementSpindleOverride(int16_t incr) {
   float rate = state.spindleOverride + (state.spindleOverride * (incr * 0.005));
+  //Don't exceed override limits
   rate = max(min(rate, config.max_spindle_override), config.min_spindle_override);
+   //If spindle is running, don't allow override to exceed max rpm
+   if ( state.spindleDirection != 0 ) {
+    rate = min(rate, config.max_spindle_speed/abs(state.spindleSpeed));
+  }
   serialMessage.send(CMD_SPINDLE_OVERRIDE, rate, 3);
 }
 

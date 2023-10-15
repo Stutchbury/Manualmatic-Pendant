@@ -84,9 +84,9 @@ class ManualmaticMessenger {
     void sendG5xOffset(uint8_t axis, char offset[20] );
 
     /**
-     * Directly control spindle RPM
+     * Directly control spindle speed (RPM will be a result of speed * override)
      */
-    void sendSpindleRpm();
+    void sendSpindleSpeed();
 
     /**
      * Stop the spindle

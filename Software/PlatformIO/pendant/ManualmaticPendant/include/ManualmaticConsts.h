@@ -19,7 +19,7 @@
 
 #include <Arduino.h>
 
-#define MANUALMATIC_VERSION "0.1.0"
+#define MANUALMATIC_VERSION "0.2.0-dev"
 // Color definitions @TODO Move to display?
 //https://github.com/adafruit/Adafruit_ILI9341/blob/master/Adafruit_ILI9341.h
 //https://chrishewett.com/blog/true-rgb565-colour-picker/
@@ -102,6 +102,10 @@ enum Exec_state_e : uint8_t {
   RCS_DONE, RCS_EXEC, RCS_ERROR
 };
 
+enum Display_coords_e : uint8_t {
+  DISPLAY_COORDS_ABS, DISPLAY_COORDS_DTG, DISPLAY_COORDS_G5X, DISPLAY_COORDS_NONE, 
+};
+
 /**
  * @brief The state of a program when in 'auto' mode
  * 
@@ -117,15 +121,24 @@ enum Operation_e : uint8_t {
 
 
 /**
+ * @brief Initialisation state of the pendant
+ */
+enum Ini_state_e : uint8_t {
+  INI_STATE_DISCONNECTED, INI_STATE_CONNECTED, INI_STATE_RECEIVED, INI_STATE_SENT
+};
+
+
+/**
  * @brief Valid values for cmd[0]
  * Do not use enum class
  */
 enum Cmd_e : uint8_t {
   CMD_ABSOLUTE_POS = 'A', // Absolute position
-  CMD_SPINDLE_SPEED = 'S', //Spindle speed set on machine
-  CMD_SPINDLE_OVERRIDE = 's', //Spindle override IN/OUT
+  CMD_SPINDLE_SPEED = 'S', //Commanded spindle speed (not RPM unless override is 100%) IN/OUT
+  CMD_SPINDLE_OVERRIDE = 's', //Spindle override - combined with speed results in RPM IN/OUT
+  CMD_SPINDLE_RPM = 'R', //Actual RPM of spindle as a result of SPINDLE_SPEED * OVERRIDE IN
+  CMD_SPINDLE_DIRECTION = 'G', //Spindle direction IN
   CMD_FEED_OVERRIDE = 'f', //Feed override IN/OUT
-  CMD_RAPID_SPEED = 'R', //Rapid speed @TODO not used?
   CMD_RAPID_OVERRIDE = 'r', //Rapid override IN/OUT
   CMD_JOG = 'J', //Jog
   CMD_JOG_VELOCITY = 'j', //Jog Velocity IN/OUT (sorta)
@@ -136,7 +149,10 @@ enum Cmd_e : uint8_t {
   CMD_INTERP_STATE = 'I', //interp_state
   CMD_CURRENT_VEL = 'v', //current_vel
   CMD_MOTION_TYPE = 't', //motion_type
-  CMD_G5X_OFFSET = 'O', //g5x_offset IN/OUT
+  CMD_G5X_INDEX = 'W', //g5x_index (WCS) IN OUT
+  CMD_G5X_OFFSET = '5', //g5x_offset IN
+  CMD_G92_OFFSET = '9', //g92_offset IN
+  CMD_TOOL_OFFSET = 'T', //Tool_offset IN: offset OUT: tool index?
   CMD_DTG = 'D', //DTG
   CMD_ALL_HOMED = 'H', //homed
   CMD_HOMED = 'h', //homed
@@ -145,7 +161,8 @@ enum Cmd_e : uint8_t {
   CMD_MIST = 'c', //Little Coolant IN/OUT
   CMD_EXEC_STATE = 'e', 
   CMD_PROGRAM_STATE = 'p',
-  CMD_AUTO = 'a'
+  CMD_AUTO = 'a',
+  CMD_HEARTBEAT = 'b' //Heartbeat
 };
 
 /**
@@ -157,10 +174,12 @@ enum Cmd_ini_e : uint8_t {
   INI_MIN_SPINDLE_OVERRIDE = 's',
   INI_MAX_SPINDLE_OVERRIDE = 'S',
   INI_DEFAULT_SPINDLE_SPEED = 'r', //#r for RPM
+  INI_MAX_SPINDLE_SPEED = 'R', //#R for RPM
   INI_LINEAR_UNITS = 'U',
   INI_ANGULAR_UNITS = 'u',
   INI_DEFAULT_LINEAR_VELOCITY = 'v',
   INI_MAX_LINEAR_VELOCITY = 'V',
+  INI_NO_FORCE_HOMING = 'h',
   INI_COMPLETE = '.'
 };
 
@@ -210,10 +229,10 @@ enum ButtonState_e : uint8_t {
 };
 
 /**
- * @brief Duration of a long click in milliseconds
+ * @brief Pulse of heartbeat in milliseconds
  * 
  */
-const unsigned int heartbeatMs = 500;
+const unsigned int heartbeatMs = 1000;
 
 /**
  * @brief Duration of a long click in milliseconds
@@ -240,8 +259,18 @@ const unsigned long spindleRateLimit = 100; //ms
  */
 const unsigned long feedRateLimit = 100; //ms
 
-const char coordSystem[3][4] = {"Abs", "DTG", "G54"};
+const char coordSystem[3][4] = {"Abs", "DTG", "G5x"};
+
+/**
+ * @brief Follows the convention of linuxcnc (except Tool)
+ */
+const char G5xLabel[10][6] = { "Tool", "G54", "G55", "G56", "G57", "G85", "G59", "G59.1", "G59.2", "G59.3" };
 
 
+
+enum ErrorMessage_e : uint8_t {
+    ERRMSG_NONE,
+    ERRMSG_NOT_HOMED,
+};
 
 #endif //ManualmaticConsts_h
