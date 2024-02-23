@@ -200,6 +200,8 @@ class linuxcnc_mock():
   homed = [0] * 9
   actual_position = [0.0]*9
   g5x_offset = [0.0]*9
+  g92_offset = [0.0]*9
+  tool_offset = [0.0]*9
   dtg = [0.0] * 9
   g5x_index = 1
   feedrate = 1
