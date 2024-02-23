@@ -55,6 +55,7 @@ Open either of these folders and PlatformIO will allow you to compile and upload
 - Copy both ```Manualmatic.py``` (the class def) and ```manualmatic``` (the component, lowercase, no file extension) to your LinuxCNC config directory.
 - Add the following line to custom.hal (replace ```gmoccapy.ini``` with your ini file name):    
 ```loadusr -W ./manualmatic gmoccapy.ini```
+- Change the ```manualmatic``` file to executable. e.g. ```chmod +x manualmatic``` 
 - Plug your manualmatic pendant into a USB port - make sure appears as ```/dev/ttyACM0```
 - Start LinuxCNC, preferably from the command line (to see any errors).
 
