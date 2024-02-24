@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 ##
 #
 # A mock cnc machine for helping develop the Manualmatic Pendant UI

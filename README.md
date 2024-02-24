@@ -59,6 +59,8 @@ Open either of these folders and PlatformIO will allow you to compile and upload
 - Plug your manualmatic pendant into a USB port - make sure appears as ```/dev/ttyACM0```
 - Start LinuxCNC, preferably from the command line (to see any errors).
 
+Note: LinuxCNC >= v2.9 now uses python3 with no default to 'python', so the ```manualmatic``` component file and the ```mock_cnc_machine.py``` file have been updated to use python3.
+
 
 
 
