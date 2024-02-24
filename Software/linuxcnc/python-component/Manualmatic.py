@@ -702,7 +702,7 @@ class Manualmatic(Commands):
       and int(cmd[1]) == self.linuxcnc.STATE_ON):
         print("Manualmatic: turning machine on")
         self.lc.state(self.linuxcnc.STATE_ON)
-        resend_positions()
+        self.resend_positions()
       elif (self.ls.task_state == self.linuxcnc.STATE_ON
       and int(cmd[1]) == self.linuxcnc.STATE_OFF ):
         print("Manualmatic: turning machine off")
