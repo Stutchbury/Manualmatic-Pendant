@@ -319,7 +319,7 @@ class Manualmatic(Commands):
   current_vel = 0
   # We hold jogVelocity as uom per minute as this is what is diplayed 
   # LinuxCNC Python interface requires uom per second 
-  jog_velocity = 3000
+  jog_velocity = 1000
   paused = None
   task_paused = None
   file = None
@@ -401,6 +401,7 @@ class Manualmatic(Commands):
       self.linear_units = self.inifile.find('TRAJ', 'LINEAR_UNITS') or 'mm'
       self.angular_units = self.inifile.find('TRAJ', 'ANGULAR_UNITS') or 'degree'
       self.default_linear_velocity = self.inifile.find('TRAJ', 'DEFAULT_LINEAR_VELOCITY') or 80
+      self.jog_velocity = self.default_linear_velocity*60
       self.max_linear_velocity = self.inifile.find('TRAJ', 'MAX_LINEAR_VELOCITY') or 120
       self.no_force_homing = self.inifile.find('TRAJ', 'NO_FORCE_HOMING') or 0
       

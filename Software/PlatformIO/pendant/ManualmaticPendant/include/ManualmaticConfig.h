@@ -45,6 +45,7 @@ class ManualmaticConfig {
 
     float jogIncrements[4] = {0.001, 0.01, 0.1, 1}; //Local display only
     float defaultJogVelocity[2] = {100, 1000}; //mm/min
+    float defaultJogTortoisePct = 10;
     float minJogVelocity = 15;
     float maxJogVelocity = 1500;
 
