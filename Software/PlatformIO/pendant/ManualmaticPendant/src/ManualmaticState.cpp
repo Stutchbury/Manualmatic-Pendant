@@ -285,8 +285,6 @@ void ManualmaticState::setIniValue(char cmd1, char* payload) {
       //Set default & current jog velocity from ini value
       config.defaultJogVelocity[0] = (config.default_linear_velocity*60)*config.defaultJogTortoisePct/100;
       config.defaultJogVelocity[1] = config.default_linear_velocity*60;
-      jogVelocity[0] = config.defaultJogVelocity[0];
-      jogVelocity[1] = config.defaultJogVelocity[1];
       break;
     case INI_MAX_LINEAR_VELOCITY:
       config.max_linear_velocity = atof(payload);

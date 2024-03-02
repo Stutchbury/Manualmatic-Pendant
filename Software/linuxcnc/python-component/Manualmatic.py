@@ -400,9 +400,9 @@ class Manualmatic(Commands):
         self.max_spindle_speed = self.inifile.find('DISPLAY', 'MAX_SPINDLE_SPEED') or 24000
       self.linear_units = self.inifile.find('TRAJ', 'LINEAR_UNITS') or 'mm'
       self.angular_units = self.inifile.find('TRAJ', 'ANGULAR_UNITS') or 'degree'
-      self.default_linear_velocity = self.inifile.find('TRAJ', 'DEFAULT_LINEAR_VELOCITY') or 80
+      self.default_linear_velocity = self.inifile.find('TRAJ', 'DEFAULT_LINEAR_VELOCITY') or 20
       self.jog_velocity = self.default_linear_velocity*60
-      self.max_linear_velocity = self.inifile.find('TRAJ', 'MAX_LINEAR_VELOCITY') or 120
+      self.max_linear_velocity = self.inifile.find('TRAJ', 'MAX_LINEAR_VELOCITY') or 40
       self.no_force_homing = self.inifile.find('TRAJ', 'NO_FORCE_HOMING') or 0
       
       

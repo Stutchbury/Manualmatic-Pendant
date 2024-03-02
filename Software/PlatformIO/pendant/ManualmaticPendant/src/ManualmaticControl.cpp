@@ -208,6 +208,8 @@ void ManualmaticControl::checkHeartbeat() {
 void ManualmaticControl::onIniReceived() {
   //Send back any relevant pendant state  
   checkEstop(true);
+  //Reset jog defaults
+  messenger.resetJogVelocity();
   state.iniState = INI_STATE_SENT;
 }
 
