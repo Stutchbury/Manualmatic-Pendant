@@ -850,8 +850,12 @@ void ManualmaticControl::onJoystickXChanged(EventAnalog& ea) {
     return;
   }
   if ( state.isManual() ) {
-    if ( state.isScreen(SCREEN_MANUAL) && state.joystickAxis[0] != AXIS_NONE ) {
-      messenger.jogAxisContinuous(state.joystickAxis[0], (state.jogVelocity[state.jogVelocityRange]/config.numJoystickIncrements) * ea.position());
+    if ( ea.position() == 0 ) { //Always stop
+      messenger.jogAxisStop(state.joystickAxis[0]);
+    } else if ( state.isScreen(SCREEN_MANUAL) && state.joystickAxis[0] != AXIS_NONE ) {
+      if ( joystick.y.position() == 0 || buttonModifier.isPressed()  ) { //Power feed safety check
+        messenger.jogAxisContinuous(state.joystickAxis[0], (state.jogVelocity[state.jogVelocityRange]/config.numJoystickIncrements) * ea.position());
+      }
     }
   }
 }
@@ -861,8 +865,12 @@ void ManualmaticControl::onJoystickYChanged(EventAnalog& ea) {
     return;
   }
   if ( state.isManual() ) {
-    if ( state.isScreen(SCREEN_MANUAL) && state.joystickAxis[1] != AXIS_NONE  ) {
-      messenger.jogAxisContinuous(state.joystickAxis[1], (state.jogVelocity[state.jogVelocityRange]/config.numJoystickIncrements) * ea.position());
+    if ( ea.position() == 0 ) { //Always stop
+        messenger.jogAxisStop(state.joystickAxis[1]);
+    } else if ( state.isScreen(SCREEN_MANUAL) && state.joystickAxis[1] != AXIS_NONE  ) {
+      if ( joystick.x.position() == 0 || buttonModifier.isPressed()  ) { //Power feed safety check
+        messenger.jogAxisContinuous(state.joystickAxis[1], (state.jogVelocity[state.jogVelocityRange]/config.numJoystickIncrements) * ea.position());
+      }
     }
   }
 }
