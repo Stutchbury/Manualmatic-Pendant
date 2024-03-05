@@ -69,3 +69,11 @@ Print as is, no support required.
 Print 'as is', I do not advise using support. 
 
 Use this to hold & tighten the nuts for the MPG.
+
+## Cradle
+
+![cradle](images/cradle.png)
+
+Print 'as is', no support required.
+
+I used 5 walls to ensure line continuity from fixing holes to support legs.
