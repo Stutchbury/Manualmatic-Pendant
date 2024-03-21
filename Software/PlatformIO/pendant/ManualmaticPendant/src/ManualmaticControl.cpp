@@ -850,7 +850,7 @@ void ManualmaticControl::onJoystickXChanged(EventAnalog& ea) {
     return;
   }
   if ( state.isManual() ) {
-    if ( ea.position() == 0 ) { //Always stop
+    if ( ea.position() == 0  && state.joystickAxis[0] != AXIS_NONE ) { //Always stop
       messenger.jogAxisStop(state.joystickAxis[0]);
     } else if ( state.isScreen(SCREEN_MANUAL) && state.joystickAxis[0] != AXIS_NONE ) {
       if ( joystick.y.position() == 0 || buttonModifier.isPressed()  ) { //Power feed safety check
@@ -865,7 +865,7 @@ void ManualmaticControl::onJoystickYChanged(EventAnalog& ea) {
     return;
   }
   if ( state.isManual() ) {
-    if ( ea.position() == 0 ) { //Always stop
+    if ( ea.position() == 0  && state.joystickAxis[1] != AXIS_NONE ) { //Always stop
         messenger.jogAxisStop(state.joystickAxis[1]);
     } else if ( state.isScreen(SCREEN_MANUAL) && state.joystickAxis[1] != AXIS_NONE  ) {
       if ( joystick.x.position() == 0 || buttonModifier.isPressed()  ) { //Power feed safety check
