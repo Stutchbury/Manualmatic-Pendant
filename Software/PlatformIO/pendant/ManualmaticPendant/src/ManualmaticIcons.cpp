@@ -24,11 +24,11 @@ ManualmaticIcons::ManualmaticIcons(Adafruit_GFX& gfx)
 
 void ManualmaticIcons::fillOctagon(Coords_s cp, uint8_t r, uint16_t colour) {
   float a = 22.5;
-  Coords_s c1 = { round(r * cos(degree2radian(a)) + cp.x), round(r * sin(degree2radian(a)) + cp.y) };
+  Coords_s c1 = { (int)round(r * cos(degree2radian(a)) + cp.x), (int)round(r * sin(degree2radian(a)) + cp.y) };
   Coords_s c2 = {0, 0};
   for (uint8_t i = 0; i < 8; i++ ) {
     a += 45;
-    c2 = { round(r * cos(degree2radian(a)) + cp.x), round(r * sin(degree2radian(a)) + cp.y) };
+    c2 = { (int)round(r * cos(degree2radian(a)) + cp.x), (int)round(r * sin(degree2radian(a)) + cp.y) };
     gfx.fillTriangle(cp.x, cp.y, c1.x, c1.y, c2.x, c2.y, colour);
     c1.x = c2.x;
     c1.y = c2.y;
