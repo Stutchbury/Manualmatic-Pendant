@@ -867,6 +867,7 @@ class Manualmatic(Commands):
         self.poll()
       else:
         self.ls.poll()
+        time.sleep(0.25)
 
   def isRunning(self):
     return self.running
