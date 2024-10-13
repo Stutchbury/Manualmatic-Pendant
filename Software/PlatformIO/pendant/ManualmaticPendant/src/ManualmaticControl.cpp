@@ -544,6 +544,7 @@ void ManualmaticControl::setupButtonRow(ButtonRow_e b=BUTTON_ROW_DEFAULT ) {
         setButtonRowAuto(b);
         break;
       case BUTTON_ROW_MDI:
+        setButtonRowMdi(b);
         break;
       case BUTTON_ROW_SPINDLE_START:
         setButtonRowCancelOrTick(b);
@@ -617,6 +618,20 @@ void ManualmaticControl::setButtonRowAuto(ButtonRow_e b) {
   //Enable the keypad
   brkp.enable();
 }
+
+void ManualmaticControl::setButtonRowMdi(ButtonRow_e b) {
+  unsetButtonRow();
+  brkp.setUserId(b);
+  brkp.key(0,2).enable();
+    
+  brkp.key(0,2).setUserId(BUTTON_COOLANT);
+  
+  setRowButtonType(2, BUTTON_COOLANT);
+  //Enable the keypad
+  brkp.enable();
+}
+
+
 
 void ManualmaticControl::setButtonRowCancelOrStop(ButtonRow_e b) {
   unsetButtonRow();

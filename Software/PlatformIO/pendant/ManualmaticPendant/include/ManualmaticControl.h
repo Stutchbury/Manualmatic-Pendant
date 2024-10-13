@@ -194,6 +194,7 @@ class ManualmaticControl {
     void setRowButtonType(uint8_t col, ButtonType_e bt);
     void setButtonRowManual(ButtonRow_e b);
     void setButtonRowAuto(ButtonRow_e b);
+    void setButtonRowMdi(ButtonRow_e b);
     void setButtonRowCancelOrStop(ButtonRow_e b);
     void setButtonRowCancelOrTick(ButtonRow_e b);
     void setButtonRowCancelOrTickG5x(ButtonRow_e b);

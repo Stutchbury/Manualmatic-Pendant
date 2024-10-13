@@ -40,6 +40,9 @@ void ManualmaticButtonRowKeypad::update(uint16_t touchUpdateMs /*= 10*/) {
       key(0, 4).setUserId(BUTTON_PLAY);
     }
     break;
+  case BUTTON_ROW_MDI:
+    setMistFloodState();    
+    break;
   default:
     break;
   }
