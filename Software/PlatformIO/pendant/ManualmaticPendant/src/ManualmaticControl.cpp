@@ -301,7 +301,9 @@ void ManualmaticControl::onSpindleTripleClicked(EncoderButton& rb) {
   }
 
   if ( !state.isAuto() ) {
-    state.spindleSpeed = state.spindleSpeed * -1;
+    if ( state.spindleRpm == 0 ) {      
+      state.spindleSpeed = state.spindleSpeed * -1;
+    }
   }
 }
 
