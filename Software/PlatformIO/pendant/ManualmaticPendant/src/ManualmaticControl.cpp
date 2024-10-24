@@ -93,6 +93,7 @@ void ManualmaticControl::setupEncoders() {
   spindle.setEncoderHandler([&](EncoderButton &eb) { onSpindleEncoder(eb); } );
   spindle.setClickHandler([&](EncoderButton &eb) { onSpindleClicked(eb); } );
   spindle.setDoubleClickHandler([&](EncoderButton &eb) { onSpindleDoubleClicked(eb); } );
+  spindle.setTripleClickHandler([&](EncoderButton &eb) { onSpindleTripleClicked(eb); } );
   spindle.setLongPressHandler([&](EncoderButton &eb) { onSpindleLongPressed(eb); } );
 
   mpg.setRateLimit(mpgRateLimit);
@@ -293,6 +294,18 @@ void ManualmaticControl::onSpindleDoubleClicked(EncoderButton& rb) {
     }
   }
 }
+
+void ManualmaticControl::onSpindleTripleClicked(EncoderButton& rb) {
+  if ( !state.isReady() ) {
+    return;
+  }
+
+  if ( !state.isAuto() ) {
+    state.spindleSpeed = state.spindleSpeed * -1;
+  }
+}
+
+
 
 void ManualmaticControl::onSpindleLongPressed(EncoderButton& rb) {
   if ( !state.isReady() ) {

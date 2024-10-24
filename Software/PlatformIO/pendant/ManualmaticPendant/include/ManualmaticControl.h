@@ -114,6 +114,7 @@ class ManualmaticControl {
     void onSpindleEncoder(EncoderButton& rb);
     void onSpindleClicked(EncoderButton& rb);
     void onSpindleDoubleClicked(EncoderButton& rb);
+    void onSpindleTripleClicked(EncoderButton& rb);
     void onSpindleLongPressed(EncoderButton& rb);
 
     void onMpgEncoder(EncoderButton& rb);
