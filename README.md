@@ -3,11 +3,6 @@
 
 The Manualmatic Pendant enables you to perform the majority of routine LinuxCNC setup, manual and automatic operations without having to step away to a PC monitor.
 
-<!-->
-Proof of concept:
-![pendant proof of concept](images/manualmatic-2022-01-31.jpeg)
--->
-
 ![Manualmatic Controls Overview](images/manualmatic_whole_small_annotated.png)
 
 
