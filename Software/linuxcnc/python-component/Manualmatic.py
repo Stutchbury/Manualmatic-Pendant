@@ -23,6 +23,11 @@ import subprocess
 #from hal_glib import GStat
 #import gobject
 
+# https://github.com/LinuxCNC/linuxcnc/issues/2273#issuecomment-1398532401
+from qtvcp import logger
+LOG = logger.initBaseLogger('MANUALMATIC', log_file=None, log_level=logger.INFO)
+
+
 dump_serial_comms = False
 
 def fmtround5(value):
@@ -141,21 +146,21 @@ class SerialInterface:
     self.last_connect_attempt = time.time()
     self.retry += 1
     if ( self.retry < 5 or self.retry%5 == 0 ):
-      print("Manualmatic: Connection attempt %d" % (self.retry, ))
+      LOG.info("Connection attempt %d" % (self.retry, ))
     try:
       port = self.port
       if port is None:
         port = self.detectTeensy()
         if not port:
           if ( self.retry < 5 or self.retry%5 == 0 ):
-            print("Manualmatic: No Manualmatic/Teensy device found")
+            LOG.warning("Manualmatic/Teensy device not found")
           return
       self.connection = serial.Serial(port, self.speed, timeout=self.read_timeout)
     except serial.SerialException as e:
-      print("Manualmatic: Connection failed - %s" % (str(e),))
+      LOG.error("Connection failed - %s" % (str(e),))
       return
     # Connected, let it settle...
-    print("Manualmatic: Connected")
+    LOG.info("Connected")
     time.sleep(0.1)
     self.owner.onConnected()
 
@@ -214,14 +219,14 @@ class SerialInterface:
         if self.processCharacter(c): # a command has been executed
           return True
       except serial.SerialException as e:
-        print("Manualmatic: Exception in manualmatic.readFromSerial()", e)
+        LOG.error("Exception in Manualmatic.readFromSerial()", e)
         self.owner.onDisconnected()
         self.startConnecting()
         return False
 
   def writeCommand(self, cmd, payload):
     if dump_serial_comms:
-      print ("Manualmatic: Outgoing(" + repr(cmd) + ", " + repr(payload) + ")")
+      LOG.debug("Outgoing(" + repr(cmd) + ", " + repr(payload) + ")")
     return self.write(self.STX + cmd.encode() + payload.encode() + self.ETX)
 
   def write(self, data):
@@ -231,7 +236,7 @@ class SerialInterface:
       self.connection.write(data)
       return True
     except serial.SerialException as se:
-      print("Manualmatic: Exception in manualmatic.write ToSerial()", str(se))
+      LOG.error("Exception in Manualmatic.write ToSerial()", str(se))
       self.owner.onDisconnected()
       return False
 
@@ -387,7 +392,7 @@ class Manualmatic(Commands):
 
   def readIniFileValues(self):
     if ( self.inifile ):
-      print('Manualmatic: Reading ini file values...')
+      LOG.info('Reading ini file values...')
       self.display = self.inifile.find('DISPLAY', 'DISPLAY') or 'axis'
       self.max_feed_override = self.inifile.find('DISPLAY', 'MAX_FEED_OVERRIDE') or 1.5
       self.min_spindle_override = self.inifile.find('DISPLAY', 'MIN_SPINDLE_OVERRIDE') or 0.5
@@ -412,7 +417,7 @@ class Manualmatic(Commands):
   # cmd[0] = self.CMD_INI_VALUE for ini, cmd[1] lowercase for default or min, upper case for max
   def sendIniValues(self):
     
-    print('Manualmatic: Sending ini values...')
+    LOG.info('Sending ini values...')
     self.writeIniValueToSerial(self.INI_AXES, self.axes)
     self.writeIniValueToSerial(self.INI_MAX_FEED_OVERRIDE, self.max_feed_override)
     self.writeIniValueToSerial(self.INI_MIN_SPINDLE_OVERRIDE, self.min_spindle_override)
@@ -428,53 +433,53 @@ class Manualmatic(Commands):
 
   # #########################################################
   # Used for debug
-  def print_axis(self, i):
-      print('Manualmatic: g5x_offset ', format(i), ': ', format(self.ls.g5x_offset[i]))
-      print('Manualmatic: abs ', format(i), ': ', format(self.ls.actual_position[i]));
-      print('Manualmatic: g92_offset ', format(i), ': ', format(self.ls.g92_offset[i]))
-      print('Manualmatic: tool_offset ', format(i), ': ', format(self.ls.tool_offset[i]))
+  def log_axis(self, i):
+      LOG.debug('g5x_offset ', format(i), ': ', format(self.ls.g5x_offset[i]))
+      LOG.debug('abs ', format(i), ': ', format(self.ls.actual_position[i]));
+      LOG.debug('g92_offset ', format(i), ': ', format(self.ls.g92_offset[i]))
+      LOG.debug('tool_offset ', format(i), ': ', format(self.ls.tool_offset[i]))
 
   # #########################################################
   # Used for debug
-  def print_stat(self):
+  def log_stat(self):
     self.ls.poll()
     for x in dir(self.ls):
         if not x.startswith("_"):
-            print(x, getattr(self.ls,x))
-            print("\n")
+            LOG.debug(x, getattr(self.ls,x))
+            #LOG.debug("\n")
 
   # #########################################################
   # Used for debug
-  def print_inifile(self):
+  def log_inifile(self):
     for x in dir(self.inifile):
         if not x.startswith("_"):
-            print(x, getattr(self.inifile,x))
-            print("\n")
+            LOG.debug(x, getattr(self.inifile,x))
+            LOG.debug("\n")
 
   # #########################################################
   # Used for debug
-  def print_interp_state(self):
+  def log_interp_state(self):
     if (self.ls.interp_state == self.linuxcnc.INTERP_IDLE):
-      print('Manualmatic: interp_state: ' + 'INTERP_IDLE')
+      LOG.debug('interp_state: ' + 'INTERP_IDLE')
     elif (self.ls.interp_state == self.linuxcnc.INTERP_READING):
-      print('Manualmatic: interp_state: ' + 'INTERP_READING')
+      LOG.debug('interp_state: ' + 'INTERP_READING')
     elif (self.ls.interp_state == self.linuxcnc.INTERP_PAUSED):
-      print('Manualmatic: interp_state: ' + 'INTERP_PAUSED')
+      LOG.debug('interp_state: ' + 'INTERP_PAUSED')
     elif (self.ls.interp_state == self.linuxcnc.INTERP_WAITING):
-      print('Manualmatic: interp_state: ' + 'INTERP_WAITING')
+      LOG.debug('interp_state: ' + 'INTERP_WAITING')
     else:
-      print('Manualmatic: interp_state: ' + format(self.ls.interp_state) + '???')
+      LOG.debug('interp_state: ' + format(self.ls.interp_state) + '???')
         
-  def print_exec_state(self):
+  def log_exec_state(self):
     None
     if ( self.ls.state == self.linuxcnc.RCS_DONE ) :
-      print('Manualmatic: exec_state: ' + format(self.ls.state) + ': RCS_DONE')
+      LOG.debug('exec_state: ' + format(self.ls.state) + ': RCS_DONE')
     elif ( self.ls.state == self.linuxcnc.RCS_EXEC ) :
-      print('Manualmatic: exec_state: ' + format(self.ls.state) + ': RCS_EXEC')
+      LOG.debug('exec_state: ' + format(self.ls.state) + ': RCS_EXEC')
     elif ( self.ls.state == self.linuxcnc.RCS_ERROR ) :
-      print('Manualmatic: exec_state: ' + format(self.ls.state) + ': RCS_ERROR')
+      LOG.debug('exec_state: ' + format(self.ls.state) + ': RCS_ERROR')
     else:
-      print('Manualmatic: exec_state: ' + format(self.ls.state) + '???')
+      LOG.debug('exec_state: ' + format(self.ls.state) + '???')
       
   def get_program_state(self):
       if (self.ls.task_mode != self.linuxcnc.MODE_AUTO or
@@ -497,8 +502,8 @@ class Manualmatic(Commands):
   # #########################################################
   # Write a message to the serial port
   def writeToSerial(self, cmd, payload=""):
-    #print(cmd)
-    #print(payload)
+    #LOG.debug(cmd)
+    #LOG.debug(payload)
     #Pad cmd if required
     if len(cmd) == 1:
       cmd = cmd + ' '
@@ -568,7 +573,7 @@ class Manualmatic(Commands):
     # This is not available via the Python Interface
     speed_cmd = self.hal.get_value("spindle.0.speed-cmd-rps") * 60
     if ( speed_cmd != self.spindle_speed_cmd ):
-      #print("Manualmatic: Spindle Speed Cmd: " + str(speed_cmd) )
+      #LOG.debug('Spindle Speed Cmd: " + str(speed_cmd) )
       if ( speed_cmd != 0 ):
         self.writeToSerial(self.CMD_SPINDLE_SPEED, format(speed_cmd))
       self.spindle_speed_cmd = speed_cmd
@@ -576,7 +581,7 @@ class Manualmatic(Commands):
     self.ls.poll()
     # Compare and send
     if (self.task_state != self.ls.task_state):
-      #print("Manualmatic: task state changed", self.ls.task_state)
+      #LOG.debug('task state changed", self.ls.task_state)
       # linuxcnc.STATE_ESTOP: 1, STATE_ESTOP_RESET: 2, STATE_ON: 4
       # STATE_OFF: 3? Appears to not be used
       self.resetState()
@@ -591,7 +596,7 @@ class Manualmatic(Commands):
       # @TODO Do we still need this if using current_vel?
       #if ( self.feed_speed != self.ls.settings[1] ):
       #  self.writeToSerial(self.CMD_MAX_FEED_OVERRIDE, format(self.ls.settings[1]))
-      #  #print(self.ls.settings[1])
+      #  #LOG.debug(self.ls.settings[1])
       #  self.feed_speed = self.ls.settings[1]
 
       # spindle speed ######################
@@ -604,30 +609,30 @@ class Manualmatic(Commands):
       # max_velocity ######################
       # This is not set in Python interface
       #if ( self.max_velocity != self.ls.max_velocity ):
-      #  print('max_velocity: ', format(self.max_velocity))
+      #  LOG.debug('max_velocity: ', format(self.max_velocity))
       #  self.max_velocity = self.ls.max_velocity
 
       # velocity ######################
       # This is not set in Python interface
       #if ( self.velocity != self.ls.velocity ):
-      #  print('velocity: ', format(self.velocity))
+      #  LOG.debug('velocity: ', format(self.velocity))
       #  self.velocity = self.ls.velocity
 
       # paused ######################
       #if ( self.paused != self.ls.paused):
       #  #self.writeToSerial(self.CMD_paused + format(self.ls.paused))
-      #  print('paused: ' + format(self.ls.paused))
+      #  LOG.debug('paused: ' + format(self.ls.paused))
       #  self.paused = self.ls.paused
 
       # task_paused ######################
       #if ( self.task_paused != self.ls.task_paused):
       #  #self.writeToSerial(self.CMD_task_paused + format(self.ls.paused))
-      #  print('task_paused: ' + format(self.ls.task_paused))
+      #  LOG.debug('task_paused: ' + format(self.ls.task_paused))
       #  self.task_paused = self.ls.task_paused
 
       # state ######################
       #if ( self.state != self.ls.state):
-      #  #self.print_exec_state()
+      #  #self.log_exec_state()
       #  self.state = self.ls.state
 
       # state ######################
@@ -635,38 +640,36 @@ class Manualmatic(Commands):
         self.program_state = self.get_program_state()
         self.writeToSerial(self.CMD_PROGRAM_STATE + format(self.program_state))
         if ( self.program_state == self.PROGRAM_STATE_NONE ):
-            print('Manualmatic: program_state: PROGRAM_STATE_NONE')
+            LOG.debug('program_state: PROGRAM_STATE_NONE')
         elif ( self.program_state == self.PROGRAM_STATE_RUNNING ):
-            print('Manualmatic: program_state: PROGRAM_STATE_RUNNING')
+            LOG.debug('program_state: PROGRAM_STATE_RUNNING')
         elif ( self.program_state == self.PROGRAM_STATE_PAUSED ):
-            print('Manualmatic: program_state: PROGRAM_STATE_PAUSED')
+            LOG.debug('program_state: PROGRAM_STATE_PAUSED')
         elif ( self.program_state == self.PROGRAM_STATE_STOPPED ):
-            print('Manualmatic: program_state: PROGRAM_STATE_STOPPED')
+            LOG.debug('program_state: PROGRAM_STATE_STOPPED')
 
 
   # #########################################################
   # Called if a valid message is received
   def processCmd(self, cmd, payload):
     if dump_serial_comms:
-      print ("Manualmatic: Incoming(" + repr(cmd) + ", " + repr(payload) + ")")
-    #print("processCmd...")
-    #print(cmd, ':', payload)
+      LOG.debug("Incoming(" + repr(cmd) + ", " + repr(payload) + ")")
 
     # Abort
     if ( cmd[0] == '!'):
       self.lc.abort();
-      print("Manualmatic: Received abort!");
+      LOG.debug("Received abort!");
 
     # Heartbeat
     elif ( cmd[0] == self.CMD_HEARTBEAT ):
       self.last_heartbeat = time.time()
-      #print("Manualmatic: <B...");
+      #LOG.debug("<B...");
       #Bounce it right back
       self.writeToSerial(self.CMD_HEARTBEAT)
 
     # Jog
     elif ( cmd[0] == self.CMD_JOG_STOP and self.ls.axis_mask & (1<<int(cmd[1])) ):
-      #print("Manualmatic: Jog Stop: " + self.axesMap[int(cmd[1])])
+      #LOG.debug("Jog Stop: " + self.axesMap[int(cmd[1])])
       if (self.ls.motion_mode != self.linuxcnc.TRAJ_MODE_TELEOP):
         self.lc.teleop_enable(True)
         self.lc.wait_complete()
@@ -684,7 +687,7 @@ class Manualmatic(Commands):
         None
 
     elif ( cmd[0] == self.CMD_JOG_CONTINUOUS and self.ls.axis_mask & (1<<int(cmd[1])) ):
-      #print("Manualmatic: Jog Continuous: " + self.axesMap[int(cmd[1])])
+      #LOG.debug("Jog Continuous: " + self.axesMap[int(cmd[1])])
       if (self.ls.motion_mode != self.linuxcnc.TRAJ_MODE_TELEOP):
         self.lc.teleop_enable(True)
         self.lc.wait_complete()
@@ -701,20 +704,20 @@ class Manualmatic(Commands):
       if ( (self.ls.task_state == self.linuxcnc.STATE_ESTOP_RESET
       or self.ls.task_state == self.linuxcnc.STATE_OFF )
       and int(cmd[1]) == self.linuxcnc.STATE_ON):
-        print("Manualmatic: turning machine on")
+        LOG.info("Turning machine on")
         self.lc.state(self.linuxcnc.STATE_ON)
         self.resend_positions()
       elif (self.ls.task_state == self.linuxcnc.STATE_ON
       and int(cmd[1]) == self.linuxcnc.STATE_OFF ):
-        print("Manualmatic: turning machine off")
+        LOG.info("Turning machine off")
         self.lc.state(self.linuxcnc.STATE_OFF)
       if (int(cmd[1]) == self.linuxcnc.STATE_ESTOP ):
-        print("Manualmatic: ESTOP")
+        LOG.info("ESTOP")
         #Set the hal pin
         self.mmc['estop-is-activated'] = 1
         self.lc.state(self.linuxcnc.STATE_ESTOP) # Shouldn't be necessary unless estop_latch is not comfigured
       if (int(cmd[1]) == self.linuxcnc.STATE_ESTOP_RESET ):
-        print("Manualmatic: ESTOP_RESET")
+        LOG.info("ESTOP_RESET")
         #Set the hal pin 
         self.mmc['estop-is-activated'] = 0
         if (self.ls.task_state == self.linuxcnc.STATE_ESTOP ): #Will likely only happen if estop_latch is configured
@@ -735,16 +738,16 @@ class Manualmatic(Commands):
       #self.lc.set_spindle_override(1, 0)
       #self.lc.wait_complete()
       rpm = float(payload)
-      #print("Manualmatic: rpm: ", rpm)
+      #LOG.debug("rpm: ", rpm)
       if ( rpm > 0 ):
-        #print("Manualmatic: forward")
+        #LOG.debug("forward")
         if ( self.ls.spindle[0]["direction"] == 0 ):
           #Hit it twice or it'll start at gmoccapy default!!!
           self.lc.spindle(self.linuxcnc.SPINDLE_FORWARD, float(rpm), 0)
           time.sleep(0.12)
         self.lc.spindle(self.linuxcnc.SPINDLE_FORWARD, float(rpm), 0)
       elif ( rpm < 0 ):
-        #print("Manualmatic: reverse")
+        #LOG.debug("reverse")
         if ( self.ls.spindle[0]["direction"] == 0 ):
           #Hit it twice or it'll start at gmoccapy default!!!
           self.lc.spindle(self.linuxcnc.SPINDLE_REVERSE, abs(rpm), 0)
@@ -760,7 +763,7 @@ class Manualmatic(Commands):
         self.lc.set_spindle_override(1, 0)
         self.lc.wait_complete()
       incr = float(payload)
-      #print("Manualmatic: set spindle override: " + str(incr) )
+      #LOG.debug("set spindle override: " + str(incr) )
       self.lc.spindleoverride(incr, 0)
 
     # Feed override
@@ -828,12 +831,12 @@ class Manualmatic(Commands):
 
     # Debug
     elif ( cmd == 'DD' ):
-      print('Manualmatic: Debug: ' + payload )
+      LOG.debug('Debug: ' + payload )
 
 
   def checkHeartbeat(self):
     if self.last_heartbeat > 0 and self.last_heartbeat + self.HEARTBEAT_MAX < time.time():
-      print("Manualmatic: no heartbeat, stopping...")
+      LOG.warning("no heartbeat, stopping...")
       self.serial_intf.disconnect()
 
   # #########################################################
@@ -849,7 +852,7 @@ class Manualmatic(Commands):
   def onDisconnected(self):
     # @TODO Do not send jog stop if machine is off
     if ( self.ls.task_state == self.linuxcnc.STATE_ON and self.ls.motion_mode == self.linuxcnc.TRAJ_MODE_TELEOP ):
-      #print("Manualmatic: stop jog on disconnect")
+      #LOG.debug("stop jog on disconnect")
       for axis in self.axes_list:
         self.lc.jog(self.linuxcnc.JOG_STOP, False, axis)
 
@@ -875,14 +878,14 @@ class Manualmatic(Commands):
   # #########################################################
   # Stop run(ning)
   def stop(self):    
-    print("Manualmatic: Stopping manualmatic...")
+    LOG.info("Stopping Manualmatic...")
     self.running = False
 
 
   # #########################################################
   # Start running in the current thread
   def start(self):
-    print("Manualmatic: Starting manualmatic...")
+    LOG.info("Starting Manualmatic...")
     self.running = True
     self.run()
 
