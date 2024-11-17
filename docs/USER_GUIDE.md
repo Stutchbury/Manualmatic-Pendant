@@ -238,6 +238,12 @@ The maximum spindle speed that can be set by the Manualmatic will be the lowest 
 
 The default spindle speed is set by the `[DISPLAY] DEFAULT_SPINDLE_SPEED` in your ini file.
 
+[Image: Display spindle running]
+
+When the spindle is running, the actual* RPM will be displayed below the requested RPM.
+
+\* The 'actual' RPM is, by default, the spindle speed *requested* by LinuxCNC (RPM + override) read from the HAL pin `spindle.0.speed-out` but if you have a spindle encoder, you can specify a different HAL pin (must be RPM, not RPS) in the ini file `[MANUALMATIC] SPINDLE_RPM_PIN`.  
+
 #### Starting the Spindle
 
 To start the spindle, single press the spindle control and the choose 'Confirm' or 'Cancel'.
@@ -382,7 +388,7 @@ Use PlatformIO to install the firmware for the Manualmatic on to the Teensy 4.1.
 
 - There are two folders of interest: 
   - The main codebase for the pendant: `Software/PlatformIO/pendant/ManualmaticPendant` or
-  - A wiring check 'sketch': `Software/PlatformIO/pendant/ManualmaticWiringCheck` This only really required for PCB development or to check your soldering!p
+  - A wiring check 'sketch': `Software/PlatformIO/pendant/ManualmaticWiringCheck` This only really required for PCB development or to check your soldering!
 
 - Required libraries will be automatically downloaded based on the `platformio.ini` file.
 
@@ -463,5 +469,8 @@ These are the 'standard' options from your `.ini` file that are read by the Manu
 
 ### Section `[MANUALMATIC]`
 
-- `SPINDLE_INCREMENT`
+This section defines options that are specific to the Manualmatic. These normally take precedence over options set elsewhere in the `ini` file.
+
+- `SPINDLE_INCREMENT` This option can be set as RPM (eg 100) or a percent (eg either 0.02 or 2%) for logarithmic-like behaviour. The percentage will be applied to the current spindle speed unless that value is less than 1 RPM.
+- `SPINDLE_RPM_PIN` The name of the hal pin that reports your spindle speed in RPM (not RPS). If not specified, the Manualmatic will use `spindle.0.speed-out` which is the RPM that LinuxCNC is requesting, not the actual RPM of the spindle.
 

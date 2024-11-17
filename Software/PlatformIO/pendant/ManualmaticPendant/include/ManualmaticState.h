@@ -210,10 +210,16 @@ class ManualmaticState {
 
 
     /**
-     * Set the commanded spindle speed on the pendant (manual mode)
-     * Ensure we cannot accidentally reverse direction.
+     * Increment the spindle RPM (Manual mode)
+     * Ensure we cannot accidentally reverse direction or 
+     * exceed max spindle RPM
      */
-    void setSpindleSpeed(int16_t incr);
+    void incrementSpindleSpeed(int16_t incr);
+
+    /**
+     * Reset the spindle defaults (RPM & percent)
+     */
+    void resetSpindleDefaults();
 
     void setErrorMessage(ErrorMessage_e error);
 

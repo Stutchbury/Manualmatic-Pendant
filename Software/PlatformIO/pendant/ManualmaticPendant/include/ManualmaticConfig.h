@@ -38,6 +38,7 @@ class ManualmaticConfig {
     float max_spindle_override = 1.5;
     float default_spindle_speed = 1000;
     float max_spindle_speed = 3000;
+    float spindle_increment = 100;
     // In machine units per second - converted in setIniValue() to machine units per minute
     float default_linear_velocity = 1;
     float max_linear_velocity = 5;

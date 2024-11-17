@@ -92,7 +92,6 @@ void ManualmaticControl::setupEncoders() {
   spindle.setRateLimit(spindleRateLimit);
   spindle.setEncoderHandler([&](EncoderButton &eb) { onSpindleEncoder(eb); } );
   spindle.setClickHandler([&](EncoderButton &eb) { onSpindleClicked(eb); } );
-  spindle.setDoubleClickHandler([&](EncoderButton &eb) { onSpindleDoubleClicked(eb); } );
   spindle.setTripleClickHandler([&](EncoderButton &eb) { onSpindleTripleClicked(eb); } );
   spindle.setLongPressHandler([&](EncoderButton &eb) { onSpindleLongPressed(eb); } );
 
@@ -256,8 +255,7 @@ void ManualmaticControl::onSpindleEncoder(EncoderButton& rb) {
   }
   int16_t incr = rb.increment() * abs(rb.increment()); //Accelerate
   if ( state.isManual() ) {
-    state.setSpindleSpeed(incr);
-    //Calculate the override
+    state.incrementSpindleSpeed(incr);
     if ( state.spindleDirection != 0 ) {
       messenger.sendSpindleSpeed();
     }
@@ -277,16 +275,10 @@ void ManualmaticControl::onSpindleClicked(EncoderButton& rb) {
       //Do same as cancel
       state.setButtonRow(BUTTON_ROW_DEFAULT);
   }  
-}
-
-void ManualmaticControl::onSpindleDoubleClicked(EncoderButton& rb) {
-  if ( !state.isReady() ) {
-    return;
-  }
-
   if ( !state.isAuto() ) {
     //Only arm if no other buttons in use and spindle is stopped
-    if ( state.isButtonRow(BUTTON_ROW_MANUAL) && state.spindleRpm == 0 ) {      
+    //if ( state.isButtonRow(BUTTON_ROW_MANUAL) && state.spindleRpm == 0 ) {      
+    if ( !state.isAuto() && state.spindleDirection == 0 && state.spindleRpm == 0 ) { 
       state.setButtonRow(BUTTON_ROW_SPINDLE_START);
     } else if ( state.isButtonRow(BUTTON_ROW_SPINDLE_START) ) {
       //Do same as cancel
@@ -313,12 +305,8 @@ void ManualmaticControl::onSpindleLongPressed(EncoderButton& rb) {
   if ( !state.isReady() ) {
     return;
   }
-  messenger.sendSpindleOverride(); //Reset to 100%
-  // If manual mode and spindle not running also reset
-  // to default?
-  if ( state.isManual() && state.spindleRpm == 0 ) {
-    state.setSpindleSpeed(config.default_spindle_speed);
-  }
+  state.resetSpindleDefaults();
+  messenger.sendSpindleOverride(); //Defaults to 1
 }
 
 

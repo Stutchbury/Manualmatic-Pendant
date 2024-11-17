@@ -530,12 +530,12 @@ void ManualmaticDisplay::drawSpindleOverride(bool forceRefresh /*= false*/ ) {
    Actual spindle speed
 */
 void ManualmaticDisplay::drawSpindleRpm(bool forceRefresh /*= false*/ ) {
-  if ( forceRefresh || drawn.spindleRpm != (state.spindleRpm * state.spindleOverride) ) {
+  if ( forceRefresh || drawn.spindleRpm != state.spindleRpm ) {
     uint8_t a = 0;
     char buffer[10];
-    dtostrf((state.spindleRpm * state.spindleOverride), -6, 0, buffer);
+    dtostrf(state.spindleRpm, -6, 0, buffer);
     drawEncoderValue(a, 2, buffer, 0, LIGHTGREY);
-    drawn.spindleRpm = (state.spindleRpm * state.spindleOverride);
+    drawn.spindleRpm = state.spindleRpm;
   }
 }
 

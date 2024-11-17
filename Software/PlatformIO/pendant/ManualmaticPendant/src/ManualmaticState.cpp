@@ -235,16 +235,43 @@ void ManualmaticState::incrementJogIncrement(int16_t incr) {
 /**
  * @brief Set the commanded spindle speed
  * 
- * @param incr 
+ * Spindle speed must not increment across 0
+ * A positive increment always increases speed in both fwd or reverse
+ * Apply a percentage if required.
+ * 
+ * @param incr Number of increments to apply
+ * 
  */
-void ManualmaticState::setSpindleSpeed(int16_t incr) {
-  spindleSpeed = spindleSpeed + (incr * 10);
+void ManualmaticState::incrementSpindleSpeed(int16_t incr) {
+
+  float spindle_increment = incr * config.spindle_increment;
+
+  if ( config.spindle_increment < 1 ) {
+      // Multiply by spindle_increment, incr times (negative incr means multiplication by 1/spindle_increment)
+      spindle_increment = abs(spindleSpeed) * (powf(1 + config.spindle_increment, incr) - 1);
+      // Always increment by at least +/- incr
+      if (abs(spindle_increment) < abs(incr)) spindle_increment = incr;
+  }
   if ( spindleSpeed > 0 ) {
-    spindleSpeed = min(max(spindleSpeed,0), (config.max_spindle_speed/spindleOverride));
-  } else if ( spindleSpeed < 0 ) {
-    spindleSpeed = max(min(spindleSpeed, 0), ((config.max_spindle_speed/spindleOverride)*-1));
+    spindleSpeed = spindleSpeed + spindle_increment;
+    spindleSpeed = min(max(spindleSpeed,1), (config.max_spindle_speed/spindleOverride));
+  } else if ( spindleSpeed < 0 ) {    
+    spindleSpeed = spindleSpeed - spindle_increment;
+    spindleSpeed = max(min(spindleSpeed, -1), ((config.max_spindle_speed/spindleOverride)*-1));
   }
 }
+
+/**
+ * Reset the spindle defaults (RPM & percent)
+ */
+void ManualmaticState::resetSpindleDefaults() {
+  spindleOverride = 1;
+  if ( isManual() && spindleRpm == 0 ) {
+    spindleSpeed = config.default_spindle_speed;
+  }
+}
+
+
 
 void ManualmaticState::setErrorMessage(ErrorMessage_e error) {
   errorMessage = error;
@@ -276,6 +303,9 @@ void ManualmaticState::setIniValue(char cmd1, char* payload) {
       break;
     case INI_MAX_SPINDLE_SPEED:
       config.max_spindle_speed = atof(payload);
+      break;
+    case INI_SPINDLE_INCREMENT:
+      config.spindle_increment = atof(payload);
       break;
 //@TODO
 //      self.writeToSerial('iU', format(self.linear_units)) 

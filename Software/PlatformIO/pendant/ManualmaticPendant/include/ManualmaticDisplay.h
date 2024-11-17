@@ -81,7 +81,7 @@ class ManualmaticDisplay {
       uint8_t g5xIndex = 1;
       float spindleOverride = 1;
       float spindleSpeed = 0; // Commanded spindle speed (multiplied by override to give rpm)
-      float spindleRpm = 0; // Actual spindale speed
+      float spindleRpm = 0; // Actual spindle speed
       int8_t spindleDirection = 0; //Indicates whether spindle is on or off 1=fwd, -1=rev, 0=stopped
       float rapidrate = 1;
       float rapidSpeed = 0;
