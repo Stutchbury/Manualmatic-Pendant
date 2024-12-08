@@ -436,7 +436,7 @@ class Manualmatic(Commands):
       max_spindle_velocity.append(self.inifile.find('SPINDLE_0', 'MAX_VELOCITY') or None) #pncconf generated
       max_spindle_velocity.append(self.inifile.find('DISPLAY', 'MAX_SPINDLE_0_SPEED') or None) #qtvcp only, deprecated?
       max_spindle_velocity.append(self.inifile.find('DISPLAY', 'MAX_SPINDLE_SPEED') or None) #In SIMs, deprecated?`
-      self.max_spindle_speed = min(float(rpm) for rpm in max_spindle_velocity if rpm is not None) or 2510
+      self.max_spindle_speed = min([float(rpm) for rpm in max_spindle_velocity if rpm is not None], default=0) or 0
 
       # Spindle Increment
       # See: https://forum.linuxcnc.org/38-general-linuxcnc-questions/54327-ini-file-clarification-roadmap#313606
