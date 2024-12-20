@@ -239,8 +239,8 @@ void ManualmaticDisplay::drawScreenSplash(bool forceRefresh) {
     gfx.print(" ");
     gfx.print(__TIME__);
     gfx.setCursor(100, 170);
-    gfx.print("Version: v");
-    gfx.print(MANUALMATIC_VERSION);
+    gfx.print("Release: ");
+    gfx.print(MANUALMATIC_RELEASE);
   }
 }
 
