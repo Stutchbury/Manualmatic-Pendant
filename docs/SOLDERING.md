@@ -23,8 +23,8 @@ Ensure all components are fully seated and square to the PCB. The 3D printed cas
 I highly recommend putting the headers on the top for ease of assembly. <br/> 
 ![MPG Headers](../images/soft-estop-header.jpg)
   <br/>
-If you are using a a hard wired (or no) estop, you can either bridge these headers or change ```useSoftEstop``` to ```false``` in ```ManualmaticConfig.h``` to free up J3 (GND & pin 27/A13) as spare connection.  <br/>
-**NOTE:** Please see main documentation to check if you need to implement the LinuxCNC estop_latch. 
+If you are using a a hard wired (or no) estop, you can either bridge these headers or change `useSoftEstop` to `false` in `ManualmaticConfig.h` to free up J3 (GND & pin 27/A13) as spare connection.  <br/>
+**NOTE:** Please see main documentation to check if you need to implement the LinuxCNC estop_latch. This is intended as a supplementary estop, not to re[lace a hard wired one.
 
 ### The Finished PCB
 
