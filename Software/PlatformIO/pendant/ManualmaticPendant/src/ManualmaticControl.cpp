@@ -461,9 +461,15 @@ void ManualmaticControl::toggleDisplayAAxis(EventButton& btn) {
 /** ********************************************************************** */
 void ManualmaticControl::onButtonModeClicked(EventButton& btn) {
   if ( state.isProgramState(PROGRAM_STATE_STOPPED) || state.isProgramState(PROGRAM_STATE_NONE) ) {
-    uint8_t m = (state.task_mode % 3) + 1; //or (1+x)%3 from 0
-    //uint8_t m = (state.task_mode % 2) + 1; //Only Manual and Auto (no MDI)
-    messenger.sendTaskMode(m);
+    //uint8_t m = (state.task_mode % 3) + 1; //or (1+x)%3 from 0
+    //messenger.sendTaskMode(m);
+    if ( state.task_mode == Task_mode_e::MODE_MDI ) {
+      //Always go to manual from MDI (not auto)
+      messenger.sendTaskMode(Task_mode_e::MODE_MANUAL);
+    } else {
+      //Just toggle
+      messenger.sendTaskMode((state.task_mode % 2) + 1);
+    }
   }
 }
 /** ********************************************************************** */
