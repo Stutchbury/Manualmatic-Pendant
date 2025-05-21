@@ -28,6 +28,7 @@ Adafruit_ILI9341 gfx = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 TouchScreen ts = TouchScreen(TOUCHSCREEN_XP, TOUCHSCREEN_YP, TOUCHSCREEN_XM, TOUCHSCREEN_YM, TOUCHSCREEN_OHMS);
 unsigned long lastTsUpdate = millis();
+unsigned long heartbeatUpdate = millis();
 
 //Encoders
 EncoderButton feed(ENCODER_A_FEED, ENCODER_B_FEED, BUTTON_FEED);
@@ -51,23 +52,85 @@ EventButton buttonRow[5] = {
 //Joystick
 EventJoystick joystick(JOYSTICK_X, JOYSTICK_Y);
 EventButton buttonJoystick(BUTTON_JOYSTICK);
-void clr() {gfx.fillRect(0,200, 320, 40, 0);}
-void onFeedEncoder(EncoderButton& btn) { clr(); gfx.printf("Feed encoder: %i \n", btn.position()); }
-void onSpindleEncoder(EncoderButton& btn) { clr(); gfx.printf("Spindle encoder: %i \n", btn.position()); }
-void onMpgEncoder(EncoderButton& btn) { clr(); gfx.printf("MPG encoder: %i \n", btn.position()); }
-void onFeed(EncoderButton& btn) { clr(); gfx.println("Feed button"); }
-void onSpindle(EncoderButton& btn) { clr(); gfx.println("Spindle button"); }
-void onOnOff(EventButton& btn) { clr(); gfx.println("On/Off button"); }
-void onX(EventButton& btn) { clr(); gfx.println("X axis button"); }
-void onY(EventButton& btn) { clr(); gfx.println("Y axis button"); }
-void onZ(EventButton& btn) { clr(); gfx.println("Z axis button"); }
-void onA(EventButton& btn) { clr(); gfx.println("A axis button"); }
-void onMode(EventButton& btn) { clr(); gfx.println("Mode button"); }
-void onRow(EventButton& btn) { clr(); gfx.printf("Row button %i \n", btn.userId()); }
-void onModifier(EventButton& btn) { clr(); gfx.println("Modifier button"); }
-void onJoystick(EventButton& btn) { clr(); gfx.println("Joystick button"); }
+void clr() {
+  gfx.fillRect(0,200, 320, 40, 0);
+  Serial.println();
+  heartbeatUpdate = millis();
+}
+void onFeedEncoder(EncoderButton& btn) { 
+  clr(); 
+  gfx.printf("Feed encoder: %i \n", btn.position());
+  Serial.printf("Feed encoder: %i \n", btn.position());
+}
+void onSpindleEncoder(EncoderButton& btn) { 
+  clr(); 
+  gfx.printf("Spindle encoder: %i \n", btn.position()); 
+  Serial.printf("Spindle encoder: %i \n", btn.position()); 
+}
+void onMpgEncoder(EncoderButton& btn) { 
+  clr(); 
+  gfx.printf("MPG encoder: %i \n", btn.position()); 
+  Serial.printf("MPG encoder: %i \n", btn.position()); 
+}
+void onFeed(EncoderButton& btn) { 
+  clr(); 
+  gfx.println("Feed button"); 
+  Serial.println("Feed button"); 
+}
+void onSpindle(EncoderButton& btn) { 
+  clr(); 
+  gfx.println("Spindle button"); 
+  Serial.println("Spindle button"); 
+}
+void onOnOff(EventButton& btn) { 
+  clr(); 
+  gfx.println("On/Off button"); 
+  Serial.println("On/Off button"); 
+}
+void onX(EventButton& btn) { 
+  clr(); 
+  gfx.println("X axis button"); 
+  Serial.println("X axis button"); 
+}
+void onY(EventButton& btn) { 
+  clr(); 
+  gfx.println("Y axis button"); 
+  Serial.println("Y axis button"); 
+}
+void onZ(EventButton& btn) { 
+  clr(); 
+  gfx.println("Z axis button"); 
+  Serial.println("Z axis button"); 
+}
+void onA(EventButton& btn) { 
+  clr(); 
+  gfx.println("A axis button"); 
+  Serial.println("A axis button"); 
+}
+void onMode(EventButton& btn) { 
+  clr(); 
+  gfx.println("Mode button"); 
+  Serial.println("Mode button"); 
+}
+void onRow(EventButton& btn) { 
+  clr(); 
+  gfx.printf("Row button %i \n", btn.userId()); 
+  Serial.printf("Row button %i \n", btn.userId()); 
+}
+void onModifier(EventButton& btn) { 
+  clr(); 
+  gfx.println("Modifier button"); 
+  Serial.println("Modifier button"); 
+}
+void onJoystick(EventButton& btn) { 
+  clr(); 
+  gfx.println("Joystick button"); 
+  Serial.println("Joystick button"); 
+}
 void onJoystickMoved(EventJoystick& ej) {
-  clr(); gfx.printf("Joystick X: %i, Y: %i \n", ej.x.position(), ej.y.position());
+  clr(); 
+  gfx.printf("Joystick X: %i, Y: %i \n", ej.x.position(), ej.y.position());
+  Serial.printf("Joystick X: %i, Y: %i \n", ej.x.position(), ej.y.position());
 }
 
 
@@ -77,7 +140,7 @@ void setup() {
   Serial.begin(115200);
   delay(200);
   Serial.println("Hello World");
- gfx.begin();
+  gfx.begin();
   gfx.setRotation(1);
   gfx.fillScreen(0);
   mpg.setEncoderHandler(onMpgEncoder);
@@ -142,6 +205,12 @@ void loop() {
     if (p.z > ts.pressureThreshhold) {
       clr();
       gfx.printf("Touch X: %i, Y: %i \n", p.x, p.y);
+      Serial.printf("Touch X: %i, Y: %i \n", p.x, p.y);
     }
+  }
+
+  if ( millis() > heartbeatUpdate + 1000 ) {
+    heartbeatUpdate = millis();
+    Serial.print(".");
   }
 }
