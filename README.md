@@ -6,9 +6,9 @@ The Manualmatic Pendant enables you to perform the majority of routine LinuxCNC 
 ![Manualmatic Controls Overview](images/manualmatic_whole_small_annotated.png)
 
 
-Kicked off [here](https://forum.linuxcnc.org/18-computer/44682-arduino-teensy-python-interface-manualmatic-mpg-pendant) on the LinuxCNC forum.
+Kicked off [here](https://forum.linuxcnc.org/18-computer/44682-arduino-teensy-python-interface-manualmatic-mpg-pendant) on the LinuxCNC forum and there's my place on [Discord](https://discord.gg/GDcEcWPKKm) for questions or discussion (PMs OK).
 
-The currently released code implements almost all the functionality for both manual and auto control but don't take my word for it, here's a comment from das_machinist on Discord:
+The currently released code implements almost all the functionality for both manual and auto control but don't take my word for it, here's a comment from das_machinist on [Discord](https://discord.gg/GDcEcWPKKm):
 
 ![Manualmatic Just Build It](images/manualmatic_just_build_it.jpg)
 
